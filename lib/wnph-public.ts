@@ -79,6 +79,35 @@ export type WnphPublicChapterRead = {
   media_placements: WnphPublicMediaPlacement[];
 };
 
+export type WnphPublicLibraryBook = {
+  public_slug: string;
+  release_sequence: number;
+  released_at: string;
+  render_master_sha256: string;
+  payload_sha256: string;
+  bibliographic: Bibliographic;
+  chapter_count: number;
+  media_count: number;
+  representative_image: {
+    url: string;
+    media_type: string;
+    byte_length: number;
+    sha256: string;
+  } | null;
+};
+
+export type WnphPublicLibraryShelf = {
+  shelf_key: string;
+  title: string;
+  book_slugs: string[];
+};
+
+export type WnphPublicLibrary = {
+  contract_version: 'wnph_public_library_v1';
+  books: WnphPublicLibraryBook[];
+  shelves: WnphPublicLibraryShelf[];
+};
+
 const SUPABASE_URL = 'https://zirqkouammpwxlqfbsvf.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_3UCb5b3USJD24c2uX6B_4A_0XWDT6si';
 
@@ -105,4 +134,8 @@ export function getWnphPublicChapter(publicSlug: string, chapterNumber: number) 
     p_public_slug: publicSlug,
     p_chapter_number: chapterNumber,
   });
+}
+
+export function getWnphPublicLibrary() {
+  return rpc<WnphPublicLibrary>('wnph_public_library_v1', {});
 }
