@@ -1,0 +1,60 @@
+.chapter-end-marker {
+  width: min(100%, 68rem);
+  margin: clamp(4.5rem, 12vh, 8rem) auto 22px;
+  text-align: center;
+  color: var(--reader-muted);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: .66rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.chapter-turn {
+  margin-top: 0;
+}
+
+.chapter-turn-card {
+  min-height: 118px;
+  padding: 24px 26px;
+}
+
+.chapter-turn-card strong {
+  max-width: none;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: .76rem;
+  font-weight: 500;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 700px) {
+  .chapter-turn {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .chapter-turn-card {
+    min-width: 0;
+    min-height: 92px;
+    padding: 18px 14px;
+  }
+
+  .chapter-turn-card + .chapter-turn-card {
+    border-top: 0;
+    border-left: 1px solid var(--reader-rule);
+  }
+
+  .chapter-turn-card.previous {
+    text-align: left;
+    align-items: flex-start;
+  }
+
+  .chapter-turn-card.next {
+    text-align: right;
+    align-items: flex-end;
+  }
+
+  .chapter-turn-card strong {
+    font-size: .66rem;
+    line-height: 1.35;
+  }
+}
