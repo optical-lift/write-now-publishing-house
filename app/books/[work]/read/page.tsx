@@ -10,5 +10,5 @@ export const metadata = {
 
 export default async function ReaderEntryPage({ params }: { params: Promise<{ work: string }> }) {
   const { work } = await params;
-  redirect(`/books/${work}/read/1`);
+  redirect(`/books/${work}`);
 }
