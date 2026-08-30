@@ -32,63 +32,77 @@ export type WnphPublicMediaPlacement = {
   };
 };
 
-export type WnphPublicRelease = {
-  contract_version: 'wnph_publication_release_v1';
-  payload_sha256: string;
-  payload: {
-    contract_version: 'wnph_publication_public_release_payload_v1';
-    release: {
-      release_key: string;
-      public_slug: string;
-      release_sequence: number;
-      released_at: string;
-      render_master_sha256: string;
-      frozen: boolean;
-      read_only: boolean;
-    };
-    bibliographic: {
-      work_key: string;
-      title: string;
-      work_type: string;
-      language_code: string;
-      expression_key: string;
-      expression_type: string;
-      creators: Array<{
-        creator_key: string;
-        label: string;
-        role: string;
-        credit_status: string;
-      }>;
-    };
-    rights: Array<{
-      component_type: string;
-      status: string;
-      use_scope: string;
-    }>;
-    chapters: WnphPublicChapter[];
-    ordered_blocks: WnphPublicBlock[];
-    media_placements: WnphPublicMediaPlacement[];
-    public_provenance: Record<string, unknown>;
-  };
+type Creator = {
+  creator_key: string;
+  label: string;
+  role: string;
+  credit_status: string;
+};
+
+type Bibliographic = {
+  work_key: string;
+  title: string;
+  work_type: string;
+  language_code: string;
+  expression_key: string;
+  expression_type: string;
+  creators: Creator[];
+};
+
+type ReleaseIdentity = {
+  release_key: string;
+  public_slug: string;
+  release_sequence: number;
+  released_at: string;
+  render_master_sha256: string;
+  payload_sha256?: string;
+};
+
+export type WnphPublicTitle = {
+  contract_version: 'wnph_public_title_v1';
+  release: ReleaseIdentity;
+  bibliographic: Bibliographic;
+  rights: Array<{ component_type: string; status: string; use_scope: string }>;
+  chapters: WnphPublicChapter[];
+  public_provenance: Record<string, unknown>;
+};
+
+export type WnphPublicChapterRead = {
+  contract_version: 'wnph_public_read_chapter_v1';
+  release: ReleaseIdentity;
+  bibliographic: Bibliographic;
+  chapter: WnphPublicChapter;
+  chapter_count: number;
+  previous_chapter: number | null;
+  next_chapter: number | null;
+  blocks: WnphPublicBlock[];
+  media_placements: WnphPublicMediaPlacement[];
 };
 
 const SUPABASE_URL = 'https://zirqkouammpwxlqfbsvf.supabase.co';
-
-// This is intentionally a Supabase publishable key, not a secret credential.
-// Its authority is limited by the database grants on the public-release RPC.
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_3UCb5b3USJD24c2uX6B_4A_0XWDT6si';
 
-export async function getWnphPublicRelease(publicSlug: string): Promise<WnphPublicRelease | null> {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/wnph_publication_release_v1`, {
+async function rpc<T>(name: string, body: Record<string, unknown>): Promise<T | null> {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, {
     method: 'POST',
     headers: {
       apikey: SUPABASE_PUBLISHABLE_KEY,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ p_public_slug: publicSlug }),
+    body: JSON.stringify(body),
     cache: 'no-store',
   });
-
   if (!response.ok) return null;
-  return (await response.json()) as WnphPublicRelease;
+  return (await response.json()) as T;
+}
+
+export function getWnphPublicTitle(publicSlug: string) {
+  return rpc<WnphPublicTitle>('wnph_public_title_v1', { p_public_slug: publicSlug });
+}
+
+export function getWnphPublicChapter(publicSlug: string, chapterNumber: number) {
+  return rpc<WnphPublicChapterRead>('wnph_public_read_chapter_v1', {
+    p_public_slug: publicSlug,
+    p_chapter_number: chapterNumber,
+  });
 }
