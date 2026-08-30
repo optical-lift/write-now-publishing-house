@@ -63,7 +63,12 @@
   text-transform: uppercase;
 }
 
-.shelfHeading span {
+.shelfHeading h2 a:hover,
+.shelfLink:hover {
+  color: var(--ink);
+}
+
+.shelfLink {
   font-family: Arial, Helvetica, sans-serif;
   font-size: .68rem;
   color: var(--ink-soft);
@@ -160,6 +165,14 @@
 
   .intro h1 {
     font-size: clamp(3.25rem, 15vw, 4.6rem);
+  }
+
+  .shelfHeading {
+    align-items: flex-end;
+  }
+
+  .shelfLink {
+    text-align: right;
   }
 
   .books {
