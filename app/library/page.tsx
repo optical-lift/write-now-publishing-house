@@ -1,45 +1,13 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getWnphPublicLibrary, type WnphPublicLibraryBook } from '../../lib/wnph-public';
+import BookObject from './book-object';
 import styles from './library.module.css';
 
 export const metadata: Metadata = {
   title: 'The Library · Write Now Publishing House',
   description: 'Recovered works returned to reading by Write Now Publishing House.',
 };
-
-function BookObject({ book }: { book: WnphPublicLibraryBook }) {
-  const author = book.bibliographic.creators.find((creator) => creator.role === 'author')?.label
-    ?? book.bibliographic.creators[0]?.label
-    ?? 'Unknown creator';
-  const image = book.representative_image;
-
-  return (
-    <article className={styles.book}>
-      <Link className={styles.artLink} href={`/books/${book.public_slug}`}>
-        <div className={styles.artFrame}>
-          {image ? (
-            <img
-              src={image.url}
-              alt={`Historical illustration from ${book.bibliographic.title}.`}
-              loading="lazy"
-              decoding="async"
-            />
-          ) : null}
-        </div>
-      </Link>
-
-      <div className={styles.bookMeta}>
-        <h3><Link href={`/books/${book.public_slug}`}>{book.bibliographic.title}</Link></h3>
-        <div className={styles.author}>{author}</div>
-        <div className={styles.details}>
-          {book.bibliographic.work_type} · {book.chapter_count} chapters · {book.media_count} illustrations
-        </div>
-        <Link className={styles.readLink} href={`/books/${book.public_slug}/read`}>Read the edition →</Link>
-      </div>
-    </article>
-  );
-}
 
 export default async function LibraryPage() {
   const library = await getWnphPublicLibrary();
@@ -66,10 +34,7 @@ export default async function LibraryPage() {
         <header className={styles.intro}>
           <div className={styles.eyebrow}>The Library</div>
           <h1>Books recovered for reading again.</h1>
-          <p>
-            Wander the shelves of works returned from surviving evidence to active reading.
-            A book may live on more than one shelf, just as it would in a reader&apos;s memory.
-          </p>
+          <p>Wander the shelves of works returned from surviving evidence to active reading.</p>
         </header>
 
         {library.shelves.map((shelf) => {
@@ -82,8 +47,10 @@ export default async function LibraryPage() {
           return (
             <section className={styles.shelf} key={shelf.shelf_key} id={shelf.shelf_key}>
               <div className={styles.shelfHeading}>
-                <h2>{shelf.title}</h2>
-                <span>{books.length} {books.length === 1 ? 'work' : 'works'}</span>
+                <h2><Link href={`/library/${shelf.shelf_key}`}>{shelf.title}</Link></h2>
+                <Link className={styles.shelfLink} href={`/library/${shelf.shelf_key}`}>
+                  View shelf · {books.length} {books.length === 1 ? 'work' : 'works'} →
+                </Link>
               </div>
               <div className={styles.books}>
                 {books.map((book) => <BookObject book={book} key={`${shelf.shelf_key}:${book.public_slug}`} />)}
