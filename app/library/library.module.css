@@ -8,6 +8,10 @@
   margin: 0 auto;
 }
 
+.homeLibraryIntro {
+  margin-bottom: 36px;
+}
+
 .intro {
   width: min(100%, 760px);
   margin-bottom: 84px;
@@ -158,6 +162,10 @@
 @media (max-width: 700px) {
   .library {
     padding: 58px 18px 88px;
+  }
+
+  .homeLibraryIntro {
+    margin-bottom: 30px;
   }
 
   .intro {
