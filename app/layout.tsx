@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import './globals.css';
 import './reader.css';
+import './reader-nav.css';
 
 export const metadata: Metadata = {
   title: 'Write Now Publishing House',
