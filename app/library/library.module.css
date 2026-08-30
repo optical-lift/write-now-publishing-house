@@ -21,7 +21,8 @@
   color: var(--ink-soft);
 }
 
-.intro h1 {
+.intro h1,
+.libraryTitle {
   margin: 18px 0 18px;
   font-size: clamp(3.4rem, 8vw, 6.4rem);
   line-height: .95;
@@ -163,7 +164,8 @@
     margin-bottom: 64px;
   }
 
-  .intro h1 {
+  .intro h1,
+  .libraryTitle {
     font-size: clamp(3.25rem, 15vw, 4.6rem);
   }
 
