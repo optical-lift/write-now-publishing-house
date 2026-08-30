@@ -65,8 +65,6 @@ export default async function ChapterReaderPage({ params }: { params: Promise<{ 
     ?? 'Unknown creator';
   const paragraphs = reading.blocks.filter((block) => block.block_type === 'paragraph');
   const plate = reading.media_placements[0];
-  const previous = chapters.find((item) => item.chapter_number === reading.previous_chapter);
-  const next = chapters.find((item) => item.chapter_number === reading.next_chapter);
 
   return (
     <main className="reader-shell reader-shell--immersive">
@@ -97,28 +95,26 @@ export default async function ChapterReaderPage({ params }: { params: Promise<{ 
           ))}
         </section>
 
+        <div className="chapter-end-marker">End of {reading.chapter.chapter_label}</div>
+
         <nav className="chapter-turn" aria-label="Chapter navigation">
           {reading.previous_chapter ? (
             <Link className="chapter-turn-card previous" href={`/books/${work}/read/${reading.previous_chapter}`}>
-              <span>Previous</span>
-              <strong>{previous?.chapter_title ?? `Chapter ${reading.previous_chapter}`}</strong>
+              <strong>← Previous chapter</strong>
             </Link>
           ) : (
             <Link className="chapter-turn-card previous" href={`/books/${work}`}>
-              <span>Edition</span>
-              <strong>About this book</strong>
+              <strong>← About this book</strong>
             </Link>
           )}
 
           {reading.next_chapter ? (
             <Link className="chapter-turn-card next" href={`/books/${work}/read/${reading.next_chapter}`}>
-              <span>Next</span>
-              <strong>{next?.chapter_title ?? `Chapter ${reading.next_chapter}`}</strong>
+              <strong>Continue reading →</strong>
             </Link>
           ) : (
             <Link className="chapter-turn-card next" href={`/books/${work}`}>
-              <span>End of book</span>
-              <strong>About this edition</strong>
+              <strong>About this edition →</strong>
             </Link>
           )}
         </nav>
