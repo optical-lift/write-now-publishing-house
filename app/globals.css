@@ -9,7 +9,7 @@
 }
 
 * { box-sizing: border-box; }
-html { background: var(--paper); color: var(--ink); }
+html { background: var(--paper); color: var(--ink); scroll-behavior: smooth; }
 body { margin: 0; min-height: 100vh; background: var(--paper); font-family: Georgia, 'Times New Roman', serif; }
 a { color: inherit; text-decoration: none; }
 button, input { font: inherit; }
@@ -84,13 +84,69 @@ button, input { font: inherit; }
 .reader-title .author { font-size: 1.12rem; color: var(--ink-soft); }
 .reader-title .status { margin-top: 56px; font-family: Arial, Helvetica, sans-serif; font-size: .76rem; color: var(--ink-soft); }
 
-.chapter { width: min(100%, var(--measure)); margin: 0 auto; padding-top: 13vh; }
+.reader-frontispiece { width: min(100%, 560px); margin: 4vh auto 10vh; }
+.reader-plate { width: min(100%, 560px); margin: 0 auto 72px; }
+.reader-plate img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--rule);
+  background: var(--paper-deep);
+  box-shadow: 0 22px 60px rgba(31, 28, 24, .10);
+}
+.reader-plate figcaption {
+  margin-top: 12px;
+  text-align: center;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: .68rem;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+}
+
+.reader-contents {
+  width: min(100%, var(--measure));
+  margin: 0 auto 8vh;
+  padding: 32px 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+.reader-contents-label {
+  margin-bottom: 18px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.reader-contents ol { margin: 0; padding: 0; list-style: none; }
+.reader-contents li + li { border-top: 1px solid var(--rule); }
+.reader-contents a { display: grid; grid-template-columns: 8rem 1fr; gap: 20px; align-items: baseline; padding: 13px 0; }
+.reader-contents span { font-family: Arial, Helvetica, sans-serif; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+.reader-contents strong { font-size: 1.08rem; font-weight: 400; }
+
+.chapter { width: min(100%, var(--measure)); margin: 0 auto; padding-top: 13vh; scroll-margin-top: 118px; }
+.chapter + .chapter { padding-top: 20vh; }
 .chapter-heading { margin-bottom: 54px; text-align: center; }
 .chapter-number { font-family: Arial, Helvetica, sans-serif; font-size: .68rem; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-soft); }
 .chapter-heading h2 { margin: 16px 0 0; font-size: clamp(2.4rem, 7vw, 4rem); font-weight: 400; letter-spacing: -.025em; }
+.reader-prose { font-size: clamp(1.08rem, 1.45vw, 1.19rem); line-height: 1.82; text-wrap: pretty; }
+.reader-prose p { margin: 0 0 1.35em; }
+.reader-prose p + p { text-indent: 1.45em; }
+.reader-prose p:last-child { margin-bottom: 0; }
 .reader-placeholder { border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 26px 0; font-family: Arial, Helvetica, sans-serif; color: var(--ink-soft); font-size: .86rem; line-height: 1.7; }
 .reader-placeholder strong { color: var(--ink); }
 .reader-actions { display: flex; justify-content: center; gap: 14px; margin-top: 56px; font-family: Arial, Helvetica, sans-serif; font-size: .78rem; color: var(--ink-soft); }
+.reader-release {
+  width: min(100%, var(--measure));
+  margin: 18vh auto 0;
+  padding-top: 24px;
+  border-top: 1px solid var(--rule);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: .68rem;
+  line-height: 1.7;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
 
 .studio { padding: 72px 24px 100px; }
 .studio-inner { width: min(100%, 1080px); margin: 0 auto; }
@@ -108,6 +164,8 @@ button, input { font: inherit; }
   .reader-toolbar { grid-template-columns: 1fr auto; }
   .reader-toolbar .left { display: none; }
   .reader { padding-left: 20px; padding-right: 20px; }
+  .reader-contents a { grid-template-columns: 1fr; gap: 5px; }
+  .reader-plate { width: min(100%, 520px); }
   .studio-flow { grid-template-columns: repeat(2, 1fr); }
 }
 
@@ -115,5 +173,8 @@ button, input { font: inherit; }
   .brand { font-size: .68rem; }
   .home h1 { font-size: 3.1rem; }
   .reader-title h1 { font-size: 3rem; }
+  .reader-toolbar .right { font-size: .68rem; }
+  .reader-prose { font-size: 1.08rem; line-height: 1.78; }
+  .reader-prose p + p { text-indent: 1.15em; }
   .studio-flow { grid-template-columns: 1fr; }
 }
