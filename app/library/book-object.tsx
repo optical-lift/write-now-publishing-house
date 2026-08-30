@@ -29,7 +29,7 @@ export default function BookObject({ book }: { book: WnphPublicLibraryBook }) {
         <div className={styles.details}>
           {book.bibliographic.work_type} · {book.chapter_count} chapters · {book.media_count} illustrations
         </div>
-        <Link className={styles.readLink} href={`/books/${book.public_slug}/read`}>Read the edition →</Link>
+        <Link className={styles.readLink} href={`/books/${book.public_slug}`}>Read the edition →</Link>
       </div>
     </article>
   );
