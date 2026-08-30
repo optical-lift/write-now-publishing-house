@@ -24,9 +24,8 @@ export default async function HomePage() {
 
       <section className={styles.library} aria-label="Library shelves">
         <div className={styles.inner}>
-          <header className={styles.intro}>
+          <header className={styles.homeLibraryIntro}>
             <div className={styles.eyebrow}>The Library</div>
-            <h2 className={styles.libraryTitle}>Books recovered for reading again.</h2>
           </header>
 
           {!library ? (
