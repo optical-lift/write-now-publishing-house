@@ -17,7 +17,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <header className="site-header">
             <Link className="brand" href="/">Write Now Publishing House</Link>
             <nav className="nav" aria-label="Primary navigation">
-              <Link href="/books/the-wish-fairy-and-dewy-dear">Books</Link>
+              <Link href="/library">Library</Link>
             </nav>
           </header>
           {children}
