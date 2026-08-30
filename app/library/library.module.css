@@ -1,0 +1,177 @@
+.library {
+  min-height: calc(100vh - 58px);
+  padding: 76px 24px 110px;
+}
+
+.inner {
+  width: min(100%, 1120px);
+  margin: 0 auto;
+}
+
+.intro {
+  width: min(100%, 760px);
+  margin-bottom: 84px;
+}
+
+.eyebrow {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: .72rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.intro h1 {
+  margin: 18px 0 18px;
+  font-size: clamp(3.4rem, 8vw, 6.4rem);
+  line-height: .95;
+  font-weight: 400;
+  letter-spacing: -.045em;
+}
+
+.intro p {
+  width: min(100%, 600px);
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 1.12rem;
+  line-height: 1.7;
+}
+
+.shelf {
+  padding: 0 0 74px;
+}
+
+.shelf + .shelf {
+  padding-top: 8px;
+}
+
+.shelfHeading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 0 14px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.shelfHeading h2 {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: .7rem;
+  font-weight: 400;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.shelfHeading span {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: .68rem;
+  color: var(--ink-soft);
+}
+
+.books {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 300px));
+  gap: 46px;
+  padding-top: 34px;
+}
+
+.book {
+  min-width: 0;
+}
+
+.artLink {
+  display: block;
+  width: 100%;
+}
+
+.artFrame {
+  display: grid;
+  place-items: center;
+  min-height: 280px;
+  padding: 10px;
+  border: 1px solid var(--rule);
+  background: color-mix(in srgb, var(--paper) 82%, white);
+}
+
+.artFrame img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 390px;
+  object-fit: contain;
+}
+
+.bookMeta {
+  padding-top: 18px;
+}
+
+.bookMeta h3 {
+  margin: 0;
+  font-size: 1.55rem;
+  line-height: 1.08;
+  font-weight: 400;
+  letter-spacing: -.015em;
+}
+
+.author {
+  margin-top: 7px;
+  color: var(--ink-soft);
+  font-size: .98rem;
+}
+
+.details {
+  margin-top: 13px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: .68rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.readLink {
+  display: inline-block;
+  margin-top: 18px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid var(--rule);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: .78rem;
+  color: var(--ink);
+}
+
+.empty {
+  padding: 28px 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink-soft);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: .82rem;
+}
+
+@media (max-width: 700px) {
+  .library {
+    padding: 58px 18px 88px;
+  }
+
+  .intro {
+    margin-bottom: 64px;
+  }
+
+  .intro h1 {
+    font-size: clamp(3.25rem, 15vw, 4.6rem);
+  }
+
+  .books {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 38px;
+  }
+
+  .book {
+    width: min(100%, 360px);
+  }
+
+  .artFrame {
+    min-height: 240px;
+  }
+}
