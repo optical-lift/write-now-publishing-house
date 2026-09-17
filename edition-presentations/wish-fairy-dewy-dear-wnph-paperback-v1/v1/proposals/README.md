@@ -37,3 +37,17 @@ For a paperback, the cover is a flexible printed wrapper around a separate page 
 ## Approval boundary
 
 Approval of artwork and approval of a website deployment are separate operations. An approved EPP may exist without any website deployment.
+
+## Current v1 study
+
+The first concrete study now lives in this directory:
+
+- `cover-concept-v1.md` — design rationale and palette;
+- `physical-spec-v1.md` — proposed trim/material/geometry direction;
+- `front-cover-v1.svg` — flat cover proposal;
+- `spine-v1.svg` — spine design-language study at deliberately exaggerated width;
+- `three-quarter-v1.svg` — physical paperback mockup;
+- `detail-v1.svg` — website selected-book study;
+- `design-review-v1.md` — review findings and promotion decision.
+
+These assets remain proposal-only. They are not referenced by `manifest.json`, do not enter the public EPP index, and do not authorize a website deployment.
