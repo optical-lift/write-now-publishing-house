@@ -26,10 +26,10 @@ Historical evidence currently supports:
 - gray cloth case;
 - green lettering;
 - multicolored, book-specific cover image/appliqué treatment;
-- approximately 5.5 × 4.25 inches;
+- approximately 5.5 × 4.25 inches as the historical bound-book size;
 - a matching white coated dust jacket.
 
-WNPH therefore adopts a 4.25 × 5.5 inch cloth-hardcover target for this restored Manifestation. The dust jacket remains historically evidenced but is not yet declared as the active EPP construction because no governed jacket spread/specification has been approved.
+WNPH therefore adopts the historical cloth-hardcover character and proportions for this restored Manifestation. The approximate historical bound-book dimensions remain restoration evidence; they are not promoted as an exact WNPH printer trim specification. Final trim remains unresolved until WNPH deliberately establishes the manufacturing geometry. The dust jacket remains historically evidenced but is not yet declared as the active EPP construction because no governed jacket spread/specification has been approved.
 
 ## Recovered cover artwork
 
@@ -45,6 +45,7 @@ That derivative is adequate as a temporary interaction asset but is too small to
 
 The following remain absent from the authoritative package until publication work establishes them:
 
+- final WNPH trim width and height;
 - final print page count;
 - spine width;
 - exact case cloth/board specification;
