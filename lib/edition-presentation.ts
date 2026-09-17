@@ -99,6 +99,23 @@ const finishes = new Set<EditionSurfaceFinish>([
   'uncoated',
   'unknown',
 ]);
+const artworkKeys = new Set([
+  'frontCover',
+  'backCover',
+  'spine',
+  'fullWrap',
+  'jacketSpread',
+  'caseFront',
+  'caseSpine',
+  'caseBack',
+]);
+const presentationKeys = new Set([
+  'shelfSpine',
+  'frontCover',
+  'threeQuarterMockup',
+  'detailMockup',
+  'jacketOffMockup',
+]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -112,6 +129,10 @@ function isPositiveNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value > 0;
 }
 
+function isPositiveInteger(value: unknown): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && value > 0;
+}
+
 function isTimestamp(value: unknown): value is string {
   return isNonEmptyString(value) && !Number.isNaN(Date.parse(value));
 }
@@ -123,10 +144,10 @@ function validateAsset(value: unknown, path: string, errors: string[]): void {
   }
   if (!isNonEmptyString(value.uri)) errors.push(`${path}.uri is required`);
   if (!isNonEmptyString(value.mediaType)) errors.push(`${path}.mediaType is required`);
-  if (value.widthPx !== undefined && (!Number.isInteger(value.widthPx) || Number(value.widthPx) <= 0)) {
+  if (value.widthPx !== undefined && !isPositiveInteger(value.widthPx)) {
     errors.push(`${path}.widthPx must be a positive integer`);
   }
-  if (value.heightPx !== undefined && (!Number.isInteger(value.heightPx) || Number(value.heightPx) <= 0)) {
+  if (value.heightPx !== undefined && !isPositiveInteger(value.heightPx)) {
     errors.push(`${path}.heightPx must be a positive integer`);
   }
   if (value.sha256 !== undefined && (typeof value.sha256 !== 'string' || !/^[A-Fa-f0-9]{64}$/.test(value.sha256))) {
@@ -134,8 +155,17 @@ function validateAsset(value: unknown, path: string, errors: string[]): void {
   }
 }
 
-function validateAssets(record: Record<string, unknown>, path: string, errors: string[]): void {
+function validateAssets(
+  record: Record<string, unknown>,
+  path: string,
+  allowedKeys: Set<string>,
+  errors: string[],
+): void {
   for (const [key, value] of Object.entries(record)) {
+    if (!allowedKeys.has(key)) {
+      errors.push(`${path}.${key} is not part of EPP v1`);
+      continue;
+    }
     if (value !== undefined) validateAsset(value, `${path}.${key}`, errors);
   }
 }
@@ -161,9 +191,7 @@ export function validateEditionPresentationPackage(value: unknown): EditionPrese
 
   if (value.schemaVersion !== 1) errors.push('schemaVersion must be 1');
   if (!isNonEmptyString(value.editionId)) errors.push('editionId is required');
-  if (!Number.isInteger(value.packageVersion) || Number(value.packageVersion) < 1) {
-    errors.push('packageVersion must be a positive integer');
-  }
+  if (!isPositiveInteger(value.packageVersion)) errors.push('packageVersion must be a positive integer');
   if (!statuses.has(value.status as EditionPresentationStatus)) errors.push('status is invalid');
   if (!isTimestamp(value.createdAt)) errors.push('createdAt must be a valid timestamp');
 
@@ -185,7 +213,7 @@ export function validateEditionPresentationPackage(value: unknown): EditionPrese
         errors.push('physical.trim must contain positive widthIn and heightIn');
       }
     }
-    if (physical.pageCount !== undefined && (!Number.isInteger(physical.pageCount) || Number(physical.pageCount) < 1)) {
+    if (physical.pageCount !== undefined && !isPositiveInteger(physical.pageCount)) {
       errors.push('physical.pageCount must be a positive integer');
     }
     if (physical.spineWidthIn !== undefined && !isPositiveNumber(physical.spineWidthIn)) {
@@ -199,12 +227,12 @@ export function validateEditionPresentationPackage(value: unknown): EditionPrese
       ['cloth-case', 'printed-casewrap', 'dust-jacket'].includes(String(physical.construction)) &&
       physical.binding !== 'hardcover'
     ) {
-      errors.push(`${physical.construction} requires binding hardcover`);
+      errors.push(`${String(physical.construction)} requires binding hardcover`);
     }
   }
 
-  if (isRecord(value.artwork)) validateAssets(value.artwork, 'artwork', errors);
-  if (isRecord(value.presentation)) validateAssets(value.presentation, 'presentation', errors);
+  if (isRecord(value.artwork)) validateAssets(value.artwork, 'artwork', artworkKeys, errors);
+  if (isRecord(value.presentation)) validateAssets(value.presentation, 'presentation', presentationKeys, errors);
 
   if (value.status === 'approved') {
     if (!isTimestamp(value.approvedAt)) errors.push('approved package requires approvedAt');
