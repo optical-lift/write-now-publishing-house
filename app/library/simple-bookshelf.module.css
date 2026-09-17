@@ -1,0 +1,308 @@
+.stage {
+  position: relative;
+  width: 100%;
+  min-height: 455px;
+  overflow: hidden;
+  background: var(--paper);
+}
+
+.rail {
+  position: absolute;
+  inset: 0 0 24px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4px;
+  padding: 72px max(28px, 4vw) 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.rail::-webkit-scrollbar {
+  display: none;
+}
+
+.bookSlot,
+.demoSlot {
+  position: relative;
+  flex: 0 0 var(--book-width);
+  width: var(--book-width);
+  height: var(--book-height);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-decoration: none;
+  outline: none;
+}
+
+.bookSlot {
+  cursor: pointer;
+}
+
+.demoSlot {
+  cursor: default;
+}
+
+.spine {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border: 1px solid rgba(37, 31, 25, .16);
+  border-radius: 3px 4px 3px 3px;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.16), transparent 18%, transparent 78%, rgba(0,0,0,.13)),
+    var(--spine-color);
+  box-shadow:
+    inset 2px 0 0 rgba(255,255,255,.08),
+    inset -2px 0 0 rgba(0,0,0,.08),
+    2px 5px 9px rgba(31, 28, 24, .12);
+  color: var(--book-ink);
+  transform: rotate(var(--book-lean));
+  transform-origin: 50% 100%;
+  transition: filter 120ms ease, box-shadow 120ms ease;
+}
+
+.bookSlot:hover .spine,
+.bookSlot:focus-visible .spine {
+  filter: brightness(1.035) saturate(1.025);
+  box-shadow:
+    inset 2px 0 0 rgba(255,255,255,.1),
+    inset -2px 0 0 rgba(0,0,0,.1),
+    3px 7px 12px rgba(31, 28, 24, .17);
+}
+
+.bookSlot:focus-visible .spine {
+  outline: 2px solid color-mix(in srgb, var(--ink) 46%, transparent);
+  outline-offset: 3px;
+}
+
+.coverWrap {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background-image: var(--cover-image);
+  background-position: left center;
+  background-repeat: no-repeat;
+  background-size: auto 100%;
+  opacity: var(--cover-opacity);
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+.colorSettle {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  background: var(--spine-color);
+  opacity: .26;
+  pointer-events: none;
+}
+
+.bandTop,
+.bandBottom {
+  position: absolute;
+  z-index: 4;
+  right: 0;
+  left: 0;
+  height: 3px;
+  background: var(--band-color);
+  opacity: .66;
+}
+
+.bandTop {
+  top: 14%;
+}
+
+.bandBottom {
+  bottom: 12%;
+}
+
+.spineTitle,
+.spineCreator,
+.publisherMark {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  display: block;
+  overflow: hidden;
+  color: var(--book-ink);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px rgba(255,255,255,.05);
+}
+
+.spineTitle {
+  top: 50%;
+  width: calc(var(--book-height) - 70px);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(10px, .82vw, 13px);
+  letter-spacing: .035em;
+  text-align: center;
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.spineCreator {
+  bottom: 50px;
+  width: calc(var(--book-height) - 150px);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 7px;
+  letter-spacing: .1em;
+  text-align: center;
+  text-transform: uppercase;
+  opacity: .74;
+  transform: translateX(-50%) rotate(90deg);
+}
+
+.publisherMark {
+  bottom: 12px;
+  width: 8px;
+  height: 8px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  opacity: .56;
+  transform: translateX(-50%);
+}
+
+.material {
+  position: absolute;
+  z-index: 7;
+  inset: 0;
+  pointer-events: none;
+  opacity: .22;
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.18) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,.13) 0 1px, transparent 1px 5px);
+  mix-blend-mode: soft-light;
+}
+
+.paperback .material {
+  opacity: .11;
+  background:
+    radial-gradient(circle at 22% 18%, rgba(255,255,255,.35) 0 .7px, transparent 1px),
+    radial-gradient(circle at 68% 63%, rgba(0,0,0,.18) 0 .6px, transparent .9px);
+  background-size: 13px 15px, 11px 13px;
+}
+
+.jacketed .material {
+  opacity: .14;
+  background: linear-gradient(108deg, rgba(255,255,255,.18), transparent 30%, transparent 68%, rgba(255,255,255,.08));
+}
+
+.sheen {
+  position: absolute;
+  z-index: 8;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(255,255,255,.14), transparent 24%, transparent 70%, rgba(0,0,0,.1));
+  opacity: .65;
+}
+
+.wear {
+  position: absolute;
+  z-index: 9;
+  inset: 0;
+  pointer-events: none;
+  box-shadow:
+    inset 0 1px rgba(255,255,255,.18),
+    inset 0 -1px rgba(0,0,0,.13),
+    inset 1px 0 rgba(255,255,255,.08),
+    inset -1px 0 rgba(0,0,0,.08);
+}
+
+.hardcover::before,
+.hardcover::after {
+  content: '';
+  position: absolute;
+  z-index: 10;
+  right: -1px;
+  left: -1px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--spine-color);
+  box-shadow: inset 0 1px rgba(255,255,255,.13), inset 0 -1px rgba(0,0,0,.12);
+}
+
+.hardcover::before {
+  top: 0;
+}
+
+.hardcover::after {
+  bottom: 0;
+}
+
+.tooltip {
+  position: absolute;
+  z-index: 40;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  display: grid;
+  width: 232px;
+  gap: 4px;
+  padding: 12px 13px;
+  border: 1px solid rgba(31,28,24,.14);
+  background: color-mix(in srgb, var(--paper) 97%, white);
+  box-shadow: 0 12px 28px rgba(31,28,24,.12);
+  color: var(--ink);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 5px);
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.bookSlot:hover .tooltip,
+.bookSlot:focus-visible .tooltip,
+.demoSlot:hover .tooltip {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.tooltip strong {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.12;
+}
+
+.tooltip span,
+.tooltip small {
+  font-family: Arial, Helvetica, sans-serif;
+  color: var(--ink-soft);
+}
+
+.tooltip span {
+  font-size: 11px;
+}
+
+.tooltip small {
+  margin-top: 2px;
+  font-size: 8px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.shelfBoard {
+  position: absolute;
+  z-index: 2;
+  right: 0;
+  bottom: 12px;
+  left: 0;
+  height: 13px;
+  border-top: 1px solid rgba(69,52,36,.27);
+  background: linear-gradient(180deg, #a17d58 0%, #7f5f40 100%);
+  box-shadow: 0 7px 14px rgba(31,28,24,.13);
+}
+
+@media (max-width: 720px) {
+  .stage {
+    min-height: 390px;
+  }
+
+  .rail {
+    justify-content: flex-start;
+    padding-top: 64px;
+    padding-inline: 28px;
+  }
+}
