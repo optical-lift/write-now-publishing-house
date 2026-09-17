@@ -11,6 +11,7 @@ import {
 } from '../../lib/library-scene';
 import styles from './spatial-library.module.css';
 import bindingStyles from './binding-volume.module.css';
+import motionStyles from './spatial-library-motion.module.css';
 
 type RectSnapshot = {
   top: number;
@@ -204,13 +205,18 @@ function VolumeDetail({ selection, onDismiss }: { selection: SelectedVolume; onD
   const [returnRect, setReturnRect] = useState<RectSnapshot>(selection.origin);
   const [returning, setReturning] = useState(false);
   const returningRef = useRef(false);
+  const completedRef = useRef(false);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const volume = selection.volume;
   const compact = selection.viewport.width <= 860;
 
+  // The recovered Dewy web derivative is currently 320 × 480. Keep the
+  // temporary live-detail presentation below that vertical resolution rather
+  // than enlarging it to the former 520px target while the high-resolution
+  // governed artwork master is still being resolved.
   const targetHeight = compact
-    ? Math.max(260, Math.min(360, selection.viewport.height * 0.48))
-    : Math.max(300, Math.min(520, selection.viewport.height - 92));
+    ? Math.max(260, Math.min(350, selection.viewport.height * 0.46))
+    : Math.max(300, Math.min(420, selection.viewport.height - 116));
   const targetWidth = Math.round(targetHeight * 0.68);
   const targetCenterX = compact ? selection.viewport.width / 2 : selection.viewport.width * 0.36;
   const targetLeft = Math.max(24, targetCenterX - targetWidth / 2);
@@ -224,21 +230,36 @@ function VolumeDetail({ selection, onDismiss }: { selection: SelectedVolume; onD
     return rectSnapshot(source.getBoundingClientRect());
   }, [selection.origin, selection.sourceId]);
 
+  const completeDismiss = useCallback(() => {
+    if (completedRef.current) return;
+    completedRef.current = true;
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    onDismiss();
+  }, [onDismiss]);
+
   const dismiss = useCallback(() => {
     if (returningRef.current) return;
     returningRef.current = true;
-    const liveRect = measureSource();
     setReturning(true);
-    setReturnRect(liveRect);
+    setReturnRect(measureSource());
 
+    // Give React a painted frame with the freshly measured shelf destination
+    // before starting the inverse flight. This prevents the old destination
+    // geometry from being used when the shelf has shifted or the viewport was
+    // resized while the detail was open.
     requestAnimationFrame(() => {
-      setOpen(false);
-      closeTimerRef.current = setTimeout(onDismiss, 980);
+      requestAnimationFrame(() => {
+        setOpen(false);
+        closeTimerRef.current = setTimeout(completeDismiss, 1050);
+      });
     });
-  }, [measureSource, onDismiss]);
+  }, [completeDismiss, measureSource]);
 
   useEffect(() => {
-    const frame = requestAnimationFrame(() => setOpen(true));
+    let openFrame = 0;
+    const frame = requestAnimationFrame(() => {
+      openFrame = requestAnimationFrame(() => setOpen(true));
+    });
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
@@ -250,21 +271,27 @@ function VolumeDetail({ selection, onDismiss }: { selection: SelectedVolume; onD
 
     return () => {
       cancelAnimationFrame(frame);
+      cancelAnimationFrame(openFrame);
       if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
       window.removeEventListener('keydown', handleKey);
       document.body.style.overflow = previousOverflow;
     };
   }, [dismiss]);
 
-  const closedLeft = returnRect.left + returnRect.width;
+  const closedScaleX = Math.max(0.01, returnRect.width / targetWidth);
+  const closedScaleY = Math.max(0.01, returnRect.height / targetHeight);
+  const closedTranslateX = returnRect.left - targetLeft;
+  const closedTranslateY = returnRect.top - targetTop;
+  const closedTransform = `translate3d(${closedTranslateX}px, ${closedTranslateY}px, 0) scale(${closedScaleX}, ${closedScaleY}) rotateY(90deg)`;
   const artUrl = volume.coverArtUrl ?? volume.representativeImageUrl;
 
   const detailStyle = {
-    top: open ? `${targetTop}px` : `${returnRect.top}px`,
-    left: open ? `${targetLeft}px` : `${closedLeft}px`,
-    width: open ? `${targetWidth}px` : `${returnRect.width}px`,
-    height: open ? `${targetHeight}px` : `${returnRect.height}px`,
-    transform: open ? 'rotateY(0deg)' : 'rotateY(90deg)',
+    top: `${targetTop}px`,
+    left: `${targetLeft}px`,
+    width: `${targetWidth}px`,
+    height: `${targetHeight}px`,
+    transform: open ? 'translate3d(0, 0, 0) scale(1, 1) rotateY(0deg)' : closedTransform,
+    transformOrigin: 'left center',
     boxShadow: open ? '28px 38px 80px rgba(0,0,0,.35)' : '8px 18px 40px rgba(0,0,0,.08)',
     '--target-height': `${targetHeight}px`,
     '--detail-spine-width': `${Math.max(18, returnRect.width)}px`,
@@ -276,6 +303,7 @@ function VolumeDetail({ selection, onDismiss }: { selection: SelectedVolume; onD
 
   const frameClassName = [
     styles.detailBookFrame,
+    motionStyles.flightFrame,
     bindingStyles.detailGeometry,
     bindingClass(volume),
     volume.jacket ? bindingStyles.jacketed : '',
@@ -283,7 +311,7 @@ function VolumeDetail({ selection, onDismiss }: { selection: SelectedVolume; onD
 
   return (
     <div
-      className={styles.detailOverlay}
+      className={`${styles.detailOverlay} ${motionStyles.detailOverlayTuned}`}
       data-open={open ? 'true' : 'false'}
       data-returning={returning ? 'true' : 'false'}
       role="dialog"
@@ -293,10 +321,17 @@ function VolumeDetail({ selection, onDismiss }: { selection: SelectedVolume; onD
         if (event.currentTarget === event.target) dismiss();
       }}
     >
-      <div className={frameClassName} style={detailStyle} aria-hidden="true">
+      <div
+        className={frameClassName}
+        style={detailStyle}
+        aria-hidden="true"
+        onTransitionEnd={(event) => {
+          if (event.propertyName === 'transform' && returning && !open) completeDismiss();
+        }}
+      >
         <div className={`${styles.detailCover} ${bindingStyles.detailCoverFace}`}>
           {artUrl ? (
-            <img className={bindingStyles.coverArtwork} src={artUrl} alt="" />
+            <img className={`${bindingStyles.coverArtwork} ${motionStyles.flightArtwork}`} src={artUrl} alt="" />
           ) : (
             <div className={styles.detailFallback}>
               <span>{volume.demo ? bindingLabel(volume) : volume.workType}</span>
@@ -319,7 +354,7 @@ function VolumeDetail({ selection, onDismiss }: { selection: SelectedVolume; onD
         <div className={bindingStyles.detailBackFace} />
       </div>
 
-      <div className={styles.detailPanel}>
+      <div className={`${styles.detailPanel} ${motionStyles.returningPanel}`}>
         <button className={styles.detailClose} type="button" onClick={dismiss} aria-label="Return book to shelf">×</button>
         <div className={styles.detailKicker}>{volume.demo ? 'Binding study' : volume.workType}</div>
         <h2>{volume.title}</h2>
@@ -451,7 +486,7 @@ export default function SpatialLibrary({
 
   return (
     <>
-      <div className={`${styles.libraryScene} ${selection ? styles.sceneMuted : ''}`}>
+      <div className={`${styles.libraryScene} ${selection ? motionStyles.sceneHeld : ''}`}>
         <SpatialShelf
           shelf={allWorksShelf}
           books={library.books}
