@@ -7,8 +7,8 @@
   "approvedAt": null,
   "supersedesPackageVersion": null,
   "physical": {
-    "binding": "hardcover",
-    "construction": "cloth-case"
+    "binding": "paperback",
+    "construction": "paperback-wrap"
   },
   "artwork": {},
   "presentation": {},
