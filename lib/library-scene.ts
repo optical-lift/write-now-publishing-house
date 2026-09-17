@@ -94,7 +94,14 @@ const glassLanternCover = svgCover(`
   </svg>
 `);
 
-function projectWishFairyRecoveredFacsimile(base: LibraryVolume): LibraryVolume {
+/**
+ * Temporary interaction fallback while the corrected restored-hardcover EPP is
+ * still draft. The gray cloth / green-ink direction is grounded in the
+ * historical restoration target, but these pixel dimensions and the live CSS
+ * geometry are not publication authority. Remove this fallback once an
+ * approved EPP supplies shelf/detail presentation assets.
+ */
+function projectWishFairyProvisionalRestoredHardcover(base: LibraryVolume): LibraryVolume {
   return {
     ...base,
     coverArtUrl: WISH_FAIRY_RECOVERED_COVER,
@@ -146,7 +153,7 @@ export function projectLibraryBookToVolume(book: WnphPublicLibraryBook): Library
   };
 
   if (book.bibliographic.work_key === 'wish-fairy-and-dewy-dear') {
-    return projectWishFairyRecoveredFacsimile(base);
+    return projectWishFairyProvisionalRestoredHardcover(base);
   }
 
   return base;
