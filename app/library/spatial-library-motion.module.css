@@ -1,0 +1,62 @@
+.coverPeek {
+  position: absolute;
+  z-index: 30;
+  bottom: 0;
+  left: calc(100% + 2px);
+  width: calc(var(--book-height) * .6666667);
+  height: var(--book-height);
+  overflow: hidden;
+  border-radius: 3px 7px 7px 3px;
+  opacity: 0;
+  pointer-events: none;
+  transform: perspective(980px) translate3d(-2px, 0, 0) rotateY(-89deg);
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  transition:
+    opacity 150ms ease,
+    transform 360ms cubic-bezier(.22, 1, .36, 1),
+    box-shadow 360ms ease;
+  will-change: transform, opacity;
+}
+
+.coverPeekVisible {
+  opacity: 1;
+  transform: perspective(980px) translate3d(0, -3px, 18px) rotateY(-72deg);
+  box-shadow: 14px 14px 28px rgba(31, 28, 24, .18);
+}
+
+.coverPeek img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  backface-visibility: hidden;
+}
+
+.detailFlight {
+  position: fixed;
+  overflow: visible;
+  transform-origin: left top;
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+}
+
+.detailBookObject {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  border-radius: 3px 7px 7px 3px;
+  background: var(--spine-color);
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  will-change: transform, box-shadow;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .coverPeek,
+  .detailFlight,
+  .detailBookObject {
+    transition: none !important;
+  }
+}
