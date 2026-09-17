@@ -1,0 +1,41 @@
+.sceneHeld {
+  pointer-events: none;
+}
+
+.detailOverlayTuned[data-open='true'] {
+  background: rgba(27, 24, 20, .38);
+}
+
+.flightFrame {
+  transition-property: transform, box-shadow;
+  transition-duration: 900ms;
+  transition-timing-function: cubic-bezier(.16, 1, .3, 1);
+  will-change: transform;
+}
+
+.detailOverlayTuned[data-returning='true'] .returningPanel {
+  opacity: 0;
+  transform: translateY(-47%);
+  transition-delay: 0ms;
+  transition-duration: 160ms;
+  pointer-events: none;
+}
+
+.detailOverlayTuned[data-returning='true'] .flightArtwork {
+  opacity: 1;
+  transform: scale(1);
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flightFrame {
+    transition-duration: 1ms;
+  }
+
+  .detailOverlayTuned,
+  .returningPanel,
+  .flightArtwork {
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+  }
+}
