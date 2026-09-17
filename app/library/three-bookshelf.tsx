@@ -151,13 +151,8 @@ function BookMesh({
     const selectionT = selectionProgress.current;
     const hoverT = hoverProgress.current;
 
-    // Hover is deliberately two-stage: move the rigid book clear of its neighbors,
-    // then reveal a small amount of the cover. Reversal naturally closes it first.
     const hoverPullT = THREE.MathUtils.smootherstep(hoverT, 0, .62);
     const hoverTurnT = THREE.MathUtils.smootherstep(hoverT, .48, 1);
-
-    // Selection follows the same physical rule at larger scale: clear the shelf,
-    // then turn toward the reader. No spring overshoot or scale deformation.
     const pullT = THREE.MathUtils.smootherstep(selectionT, 0, .32);
     const faceT = THREE.MathUtils.smootherstep(selectionT, .26, 1);
     const suppressHover = 1 - THREE.MathUtils.smootherstep(selectionT, 0, .16);
