@@ -84,12 +84,17 @@ function VolumeDetail({ selection, onDismiss }: { selection: SelectedVolume; onD
   const [open, setOpen] = useState(false);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const volume = selection.volume;
+  const compact = selection.viewport.width <= 860;
 
-  const targetHeight = Math.max(300, Math.min(520, selection.viewport.height - 92));
+  const targetHeight = compact
+    ? Math.max(260, Math.min(360, selection.viewport.height * 0.48))
+    : Math.max(300, Math.min(520, selection.viewport.height - 92));
   const targetWidth = Math.round(targetHeight * 0.68);
-  const targetCenterX = selection.viewport.width > 860 ? selection.viewport.width * 0.36 : selection.viewport.width / 2;
+  const targetCenterX = compact ? selection.viewport.width / 2 : selection.viewport.width * 0.36;
   const targetLeft = Math.max(24, targetCenterX - targetWidth / 2);
-  const targetTop = Math.max(34, (selection.viewport.height - targetHeight) / 2);
+  const targetTop = compact
+    ? Math.max(24, selection.viewport.height * 0.08)
+    : Math.max(34, (selection.viewport.height - targetHeight) / 2);
 
   const detailStyle = {
     '--origin-top': `${selection.origin.top}px`,
