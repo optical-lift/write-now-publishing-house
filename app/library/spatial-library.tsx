@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -11,7 +12,6 @@ import {
   type LibraryVolume,
 } from '../../lib/library-scene';
 import styles from './spatial-library.module.css';
-import bindingStyles from './binding-volume.module.css';
 import motionStyles from './spatial-library-motion.module.css';
 
 type RectSnapshot = {
@@ -48,9 +48,11 @@ type SelectedVolume = {
   };
 };
 
-const DEWY_HIGH_RES_COVER = '/recovered-covers/the-wish-fairy-and-dewy-dear/front-cover-restored-1024.webp';
-const BOOK_FLIGHT_MS = 760;
+type BookPose = 'shelf' | 'hover' | 'detail';
+
+const BOOK_FLIGHT_MS = 720;
 const BOOK_FLIGHT_EASE = 'cubic-bezier(.22, 1, .36, 1)';
+const SHELF_MOTION_MS = 360;
 
 const dissolvedStageStyle: CSSProperties = {
   width: '100vw',
@@ -92,12 +94,6 @@ function volumeElementId(volume: LibraryVolume) {
   return `library-volume-${volume.publicSlug}`;
 }
 
-function bindingClass(volume: LibraryVolume) {
-  if (volume.binding === 'hardcover') return bindingStyles.hardcover;
-  if (volume.binding === 'paperback') return bindingStyles.paperback;
-  return bindingStyles.unknownBinding;
-}
-
 function bindingLabel(volume: LibraryVolume) {
   if (volume.binding === 'hardcover' && volume.jacket) return 'jacketed hardcover';
   if (volume.binding === 'hardcover') return 'cloth hardcover';
@@ -106,31 +102,91 @@ function bindingLabel(volume: LibraryVolume) {
 }
 
 function presentationArtUrl(volume: LibraryVolume) {
-  if (volume.workKey === 'wish-fairy-and-dewy-dear') return DEWY_HIGH_RES_COVER;
   return volume.coverArtUrl ?? volume.representativeImageUrl;
 }
 
-function BookSpineAnatomy({ volume, hovered }: { volume: LibraryVolume; hovered: boolean }) {
-  const spineStyle = {
-    transform: `translate3d(0, ${hovered ? '-3px' : '0'}, ${hovered ? '14px' : '0'}) rotateY(var(--curve-rotate)) rotateZ(var(--book-lean))`,
-    boxShadow: hovered
-      ? '8px 15px 24px rgba(31, 28, 24, .20)'
-      : undefined,
+function coverWidthFor(volume: LibraryVolume) {
+  return Math.round(volume.height * (2 / 3));
+}
+
+function closedBookTransform(volume: LibraryVolume, pose: BookPose, curveRotation: number) {
+  if (pose === 'detail') return 'translate3d(0, 0, 0) rotateY(0deg) rotateZ(0deg)';
+  if (pose === 'hover') return 'translate3d(0, -4px, 24px) rotateY(78deg) rotateZ(0deg)';
+  return `translate3d(0, 0, 0) rotateY(${90 + curveRotation}deg) rotateZ(${volume.lean}deg)`;
+}
+
+function ClosedBook({
+  volume,
+  pose,
+  curveRotation = 0,
+  motionMs = SHELF_MOTION_MS,
+}: {
+  volume: LibraryVolume;
+  pose: BookPose;
+  curveRotation?: number;
+  motionMs?: number;
+}) {
+  const artUrl = presentationArtUrl(volume);
+  const coverWidth = coverWidthFor(volume);
+  const facsimile = volume.workKey === 'wish-fairy-and-dewy-dear' && Boolean(artUrl);
+  const cloth = volume.binding === 'hardcover'
+    && volume.finish === 'cloth'
+    && !volume.jacket
+    && !facsimile;
+
+  const rootStyle = {
+    '--cover-width': `${coverWidth}px`,
+    '--book-height': `${volume.height}px`,
+    '--book-thickness': `${volume.width}px`,
+    '--spine-color': volume.spineColor,
+    '--band-color': volume.bandColor,
+    '--book-ink': volume.inkColor,
+    transform: closedBookTransform(volume, pose, curveRotation),
+    filter: pose === 'detail'
+      ? 'drop-shadow(24px 30px 30px rgba(31, 28, 24, .28))'
+      : pose === 'hover'
+        ? 'drop-shadow(10px 14px 14px rgba(31, 28, 24, .22))'
+        : 'drop-shadow(5px 8px 8px rgba(31, 28, 24, .14))',
+    transition: `transform ${motionMs}ms ${BOOK_FLIGHT_EASE}, filter ${motionMs}ms ${BOOK_FLIGHT_EASE}`,
   } as CSSProperties;
 
+  const className = [
+    motionStyles.closedBook,
+    volume.binding === 'hardcover' ? motionStyles.hardcover : '',
+    volume.jacket ? motionStyles.jacketed : '',
+    cloth ? motionStyles.cloth : '',
+    facsimile ? motionStyles.facsimile : '',
+  ].filter(Boolean).join(' ');
+
   return (
-    <span className={styles.bookBody} aria-hidden="true" style={spineStyle}>
-      <span className={bindingStyles.caseTop} />
-      <span className={bindingStyles.caseBottom} />
-      <span className={bindingStyles.hinge} />
-      <span className={bindingStyles.headbandTop} />
-      <span className={bindingStyles.headbandBottom} />
-      <span className={bindingStyles.jacketSkin} />
-      <span className={bindingStyles.materialTexture} />
-      <span className={styles.band} />
-      <span className={styles.spineTitle}>{volume.title}</span>
-      <span className={styles.spineCreator}>{volume.creator}</span>
-      <span className={styles.pageBlock} />
+    <span className={className} style={rootStyle} aria-hidden="true">
+      <span className={motionStyles.frontFace}>
+        {artUrl ? (
+          <Image
+            className={motionStyles.coverArtwork}
+            src={artUrl}
+            alt=""
+            fill
+            sizes="(max-width: 860px) 260px, 360px"
+            unoptimized={facsimile || artUrl.startsWith('data:')}
+            draggable={false}
+          />
+        ) : (
+          <span className={motionStyles.coverFallback}>
+            <strong>{volume.title}</strong>
+            <span>{volume.creator}</span>
+          </span>
+        )}
+      </span>
+      <span className={motionStyles.spineFace}>
+        <span className={motionStyles.spineBand} />
+        <span className={motionStyles.spineTitle}>{volume.title}</span>
+        <span className={motionStyles.spineCreator}>{volume.creator}</span>
+      </span>
+      <span className={motionStyles.foreEdge} />
+      <span className={motionStyles.topEdge} />
+      <span className={motionStyles.bottomEdge} />
+      <span className={motionStyles.backFace} />
     </span>
   );
 }
@@ -147,7 +203,7 @@ function SpatialVolume({
   handoff: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
-  const artUrl = presentationArtUrl(volume);
+  const sourceHidden = selected && !handoff;
   const style = {
     '--book-width': `${volume.width}px`,
     '--book-height': `${volume.height}px`,
@@ -161,37 +217,9 @@ function SpatialVolume({
 
   const className = [
     styles.volumeHit,
-    bindingClass(volume),
-    volume.jacket ? bindingStyles.jacketed : '',
-    volume.demo ? bindingStyles.demoButton : '',
-    selected && !handoff ? bindingStyles.sourceHidden : '',
+    motionStyles.volumeReset,
+    sourceHidden ? motionStyles.sourceHidden : '',
   ].filter(Boolean).join(' ');
-
-  const content = (
-    <>
-      <span className={styles.volumeCard} aria-hidden="true">
-        <span className={styles.cardKicker}>{volume.demo ? 'Binding study' : volume.workType}</span>
-        <strong>{volume.title}</strong>
-        <span>{volume.creator}</span>
-        <small>
-          {volume.demo
-            ? `${bindingLabel(volume)} · temporary demo volume`
-            : `${volume.chapterCount} chapters · ${volume.mediaCount} illustrations`}
-        </small>
-      </span>
-
-      <BookSpineAnatomy volume={volume} hovered={hovered && !selected} />
-
-      {artUrl ? (
-        <span
-          className={`${motionStyles.coverPeek} ${hovered && !selected ? motionStyles.coverPeekVisible : ''}`}
-          aria-hidden="true"
-        >
-          <img src={artUrl} alt="" draggable={false} />
-        </span>
-      ) : null}
-    </>
-  );
 
   const commonProps = {
     id: volumeElementId(volume),
@@ -199,13 +227,21 @@ function SpatialVolume({
     'data-volume-id': volume.publicSlug,
     style,
     className,
-    tabIndex: selected ? -1 : undefined,
-    'aria-hidden': selected || undefined,
+    tabIndex: sourceHidden ? -1 : undefined,
+    'aria-hidden': sourceHidden || undefined,
     onMouseEnter: () => setHovered(true),
     onMouseLeave: () => setHovered(false),
     onFocus: () => setHovered(true),
     onBlur: () => setHovered(false),
   };
+
+  const content = (
+    <ClosedBook
+      volume={volume}
+      pose={hovered && !selected ? 'hover' : 'shelf'}
+      curveRotation={0}
+    />
+  );
 
   if (volume.demo) {
     return (
@@ -251,24 +287,27 @@ function VolumeDetail({
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [returnRect, setReturnRect] = useState<RectSnapshot>(selection.origin);
+  const [settled, setSettled] = useState(false);
   const [returning, setReturning] = useState(false);
   const [handoff, setHandoff] = useState(false);
+  const [returnRect, setReturnRect] = useState<RectSnapshot>(selection.origin);
   const returningRef = useRef(false);
   const handoffRef = useRef(false);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const volume = selection.volume;
   const compact = selection.viewport.width <= 860;
+  const naturalCoverWidth = coverWidthFor(volume);
 
   const targetHeight = compact
-    ? Math.max(260, Math.min(370, selection.viewport.height * 0.5))
-    : Math.max(320, Math.min(540, selection.viewport.height - 104));
-  const targetWidth = Math.round(targetHeight * (2 / 3));
-  const targetCenterX = compact ? selection.viewport.width / 2 : selection.viewport.width * 0.36;
+    ? Math.max(250, Math.min(350, selection.viewport.height * 0.46))
+    : Math.max(300, Math.min(455, selection.viewport.height - 150));
+  const targetScale = targetHeight / volume.height;
+  const targetWidth = naturalCoverWidth * targetScale;
+  const targetCenterX = compact ? selection.viewport.width / 2 : selection.viewport.width * 0.39;
   const targetLeft = Math.max(24, targetCenterX - targetWidth / 2);
   const targetTop = compact
     ? Math.max(24, selection.viewport.height * 0.07)
-    : Math.max(36, (selection.viewport.height - targetHeight) / 2);
+    : Math.max(42, (selection.viewport.height - targetHeight) / 2);
 
   const measureSource = useCallback((): RectSnapshot => {
     const source = document.getElementById(selection.sourceId);
@@ -277,9 +316,9 @@ function VolumeDetail({
   }, [selection.origin, selection.sourceId]);
 
   const openEdition = useCallback(() => {
-    if (volume.demo || returningRef.current) return;
+    if (volume.demo || returningRef.current || !settled) return;
     router.push(`/books/${volume.publicSlug}`);
-  }, [router, volume.demo, volume.publicSlug]);
+  }, [router, settled, volume.demo, volume.publicSlug]);
 
   const beginHandoff = useCallback(() => {
     if (handoffRef.current) return;
@@ -287,7 +326,7 @@ function VolumeDetail({
     if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
     onReturnLanded(volume.publicSlug);
     setHandoff(true);
-    closeTimerRef.current = setTimeout(onDismiss, 140);
+    closeTimerRef.current = setTimeout(onDismiss, 70);
   }, [onDismiss, onReturnLanded, volume.publicSlug]);
 
   const dismiss = useCallback(() => {
@@ -300,17 +339,23 @@ function VolumeDetail({
       return;
     }
 
+    setSettled(false);
     setReturnRect(measureSource());
     setReturning(true);
     requestAnimationFrame(() => setOpen(false));
-    closeTimerRef.current = setTimeout(beginHandoff, BOOK_FLIGHT_MS + 180);
+    closeTimerRef.current = setTimeout(beginHandoff, BOOK_FLIGHT_MS + 140);
   }, [beginHandoff, measureSource, onDismiss, onReturnLanded, volume.publicSlug]);
 
   useEffect(() => {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let secondFrame = 0;
     const firstFrame = requestAnimationFrame(() => {
-      secondFrame = requestAnimationFrame(() => setOpen(true));
+      secondFrame = requestAnimationFrame(() => {
+        setOpen(true);
+        if (reduced) setSettled(true);
+      });
     });
+
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
@@ -328,99 +373,56 @@ function VolumeDetail({
     };
   }, [dismiss]);
 
-  const sourceRight = returnRect.left + returnRect.width;
-  const returnTranslateX = sourceRight - targetLeft;
-  const returnTranslateY = returnRect.top - targetTop;
-  const returnScaleY = Math.max(0.08, returnRect.height / targetHeight);
-  const shelfYRotation = 90 + selection.sourceCurveRotation;
-  const artUrl = presentationArtUrl(volume);
+  const targetTranslateX = targetLeft - selection.origin.left;
+  const targetTranslateY = targetTop - selection.origin.top;
+  const returnTranslateX = returnRect.left - selection.origin.left;
+  const returnTranslateY = returnRect.top - selection.origin.top;
+
+  const flightTransform = open
+    ? `translate3d(${targetTranslateX}px, ${targetTranslateY}px, 0) scale(${targetScale})`
+    : returning
+      ? `translate3d(${returnTranslateX}px, ${returnTranslateY}px, 0) scale(1)`
+      : 'translate3d(0, 0, 0) scale(1)';
 
   const flightStyle = {
-    top: `${targetTop}px`,
-    left: `${targetLeft}px`,
-    width: `${targetWidth}px`,
-    height: `${targetHeight}px`,
-    transform: open
-      ? 'translate3d(0, 0, 0) scaleY(1)'
-      : `translate3d(${returnTranslateX}px, ${returnTranslateY}px, 0) scaleY(${returnScaleY})`,
+    '--cover-width': `${naturalCoverWidth}px`,
+    '--book-height': `${volume.height}px`,
+    top: `${selection.origin.top}px`,
+    left: `${selection.origin.left}px`,
+    transform: flightTransform,
     opacity: handoff ? 0 : 1,
-    transition: `transform ${BOOK_FLIGHT_MS}ms ${BOOK_FLIGHT_EASE}, opacity 130ms ease`,
+    transition: `transform ${BOOK_FLIGHT_MS}ms ${BOOK_FLIGHT_EASE}, opacity 60ms linear`,
   } as CSSProperties;
 
-  const bookStyle = {
-    transform: open
-      ? 'rotateY(0deg) rotateZ(0deg)'
-      : `rotateY(${shelfYRotation}deg) rotateZ(${volume.lean}deg)`,
-    boxShadow: open
-      ? '28px 38px 80px rgba(0,0,0,.32)'
-      : '5px 8px 18px rgba(31, 28, 24, .14)',
-    cursor: volume.demo || returning ? 'default' : 'pointer',
-    transition: `transform ${BOOK_FLIGHT_MS}ms ${BOOK_FLIGHT_EASE}, box-shadow ${BOOK_FLIGHT_MS}ms ${BOOK_FLIGHT_EASE}`,
-    '--target-height': `${targetHeight}px`,
-    '--detail-spine-width': `${Math.max(18, returnRect.width)}px`,
-    '--detail-depth': `${Math.max(18, Math.min(34, volume.depth))}px`,
-    '--spine-color': volume.spineColor,
-    '--band-color': volume.bandColor,
-    '--book-ink': volume.inkColor,
-  } as CSSProperties;
-
-  const overlayStyle = {
-    background: open ? 'rgba(27, 24, 20, .36)' : 'rgba(27, 24, 20, 0)',
-    transition: 'background 260ms ease',
-  } as CSSProperties;
-
-  const coverStyle = {
-    opacity: 1,
-    transform: 'scale(1)',
-    transition: 'none',
-  } as CSSProperties;
-
-  const panelStyle = {
-    opacity: open && !returning ? 1 : 0,
-    transform: open && !returning ? 'translateY(-50%)' : 'translateY(-46%)',
-    pointerEvents: open && !returning ? 'auto' : 'none',
-    transition: open && !returning
-      ? 'opacity 300ms ease 220ms, transform 420ms cubic-bezier(.22, 1, .36, 1) 220ms'
-      : 'opacity 150ms ease, transform 180ms ease',
-  } as CSSProperties;
-
-  const bookClassName = [
-    motionStyles.detailBookObject,
-    bindingStyles.detailGeometry,
-    bindingClass(volume),
-    volume.jacket ? bindingStyles.jacketed : '',
+  const infoClassName = [
+    motionStyles.detailInfo,
+    settled && !returning ? motionStyles.detailInfoVisible : '',
   ].filter(Boolean).join(' ');
 
   return (
     <div
-      className={styles.detailOverlay}
-      data-open={open ? 'true' : 'false'}
-      data-returning={returning ? 'true' : 'false'}
+      className={`${motionStyles.detailOverlay} ${open ? motionStyles.detailOverlayOpen : ''}`}
       role="dialog"
       aria-modal="true"
       aria-label={`${volume.title} by ${volume.creator}`}
-      style={overlayStyle}
       onMouseDown={(event) => {
         if (event.currentTarget === event.target) dismiss();
       }}
     >
       <div
-        className={motionStyles.detailFlight}
+        className={motionStyles.bookFlight}
         style={flightStyle}
         onTransitionEnd={(event) => {
-          if (
-            returning
-            && !handoff
-            && event.currentTarget === event.target
-            && event.propertyName === 'transform'
-          ) {
+          if (event.currentTarget !== event.target || event.propertyName !== 'transform') return;
+          if (returning) {
             beginHandoff();
+          } else if (open) {
+            setSettled(true);
           }
         }}
       >
         <div
-          className={bookClassName}
-          style={bookStyle}
+          className={motionStyles.detailBookHit}
           role={volume.demo ? undefined : 'button'}
           tabIndex={volume.demo || returning ? undefined : 0}
           aria-label={volume.demo ? undefined : `Open ${volume.title}`}
@@ -433,54 +435,28 @@ function VolumeDetail({
             }
           }}
         >
-          <div className={`${styles.detailCover} ${bindingStyles.detailCoverFace}`}>
-            {artUrl ? (
-              <img
-                className={bindingStyles.coverArtwork}
-                src={artUrl}
-                alt=""
-                style={coverStyle}
-                draggable={false}
-              />
-            ) : (
-              <div className={styles.detailFallback}>
-                <span>{volume.demo ? bindingLabel(volume) : volume.workType}</span>
-                <strong>{volume.title}</strong>
-                <small>{volume.creator}</small>
-              </div>
-            )}
-            <span className={bindingStyles.detailMaterialOverlay} />
-            <span className={bindingStyles.detailBoardEdge} />
-            <span className={bindingStyles.detailJacketPaper} />
-            <span className={bindingStyles.detailJacketSheen} />
-          </div>
-          <div className={bindingStyles.detailSpineFace}>
-            <span>{volume.title}</span>
-            <i aria-hidden="true" />
-          </div>
-          <div className={bindingStyles.detailPageFace} />
-          <div className={bindingStyles.detailTopEdge} />
-          <div className={bindingStyles.detailBottomEdge} />
-          <div className={bindingStyles.detailBackFace} />
+          <ClosedBook
+            volume={volume}
+            pose={open ? 'detail' : 'shelf'}
+            curveRotation={selection.sourceCurveRotation}
+            motionMs={BOOK_FLIGHT_MS}
+          />
         </div>
       </div>
 
-      <div className={styles.detailPanel} style={panelStyle}>
-        <button className={styles.detailClose} type="button" onClick={dismiss} aria-label="Return book to shelf">×</button>
-        <div className={styles.detailKicker}>{volume.demo ? 'Binding study' : volume.workType}</div>
+      <div className={infoClassName}>
+        <div className={motionStyles.detailKicker}>{volume.demo ? 'Binding study' : volume.workType}</div>
         <h2>{volume.title}</h2>
-        <p className={styles.detailCreator}>{volume.creator}</p>
-        <p className={styles.detailFacts}>
+        <p className={motionStyles.detailCreator}>{volume.creator}</p>
+        <p className={motionStyles.detailFacts}>
           {volume.demo
             ? `${bindingLabel(volume)} · temporary shelf example`
             : `${volume.chapterCount} chapters · ${volume.mediaCount} illustrations`}
         </p>
         {!volume.demo ? (
-          <Link className={styles.readButton} href={`/books/${volume.publicSlug}`}>
-            Open this edition →
-          </Link>
+          <p className={motionStyles.detailInstruction}>Click the cover again to open this edition.</p>
         ) : null}
-        <button className={styles.returnButton} type="button" onClick={dismiss}>Return to shelf</button>
+        <button className={motionStyles.detailReturn} type="button" onClick={dismiss}>Return to shelf</button>
       </div>
     </div>
   );
@@ -518,7 +494,14 @@ function SpatialShelf({
           const rect = volume.getBoundingClientRect();
           const center = rect.left + rect.width / 2;
           const normalized = Math.max(-1, Math.min(1, (center - visibleCenter) / halfWidth));
-          volume.style.setProperty('--curve-rotate', `${(normalized * 30).toFixed(2)}deg`);
+          volume.style.setProperty('--curve-rotate', `${(normalized * 4).toFixed(2)}deg`);
+
+          const physicalBook = volume.querySelector<HTMLElement>('[data-closed-book]');
+          if (physicalBook && !volume.matches(':hover, :focus-visible')) {
+            const lean = Number.parseFloat(volume.style.getPropertyValue('--book-lean')) || 0;
+            const curve = normalized * 4;
+            physicalBook.style.transform = `translate3d(0, 0, 0) rotateY(${90 + curve}deg) rotateZ(${lean}deg)`;
+          }
         });
       });
     };
