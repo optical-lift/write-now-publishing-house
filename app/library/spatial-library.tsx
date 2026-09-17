@@ -109,10 +109,19 @@ function coverWidthFor(volume: LibraryVolume) {
   return Math.round(volume.height * (2 / 3));
 }
 
-function closedBookTransform(volume: LibraryVolume, pose: BookPose, curveRotation: number) {
+function closedBookTransform(
+  volume: LibraryVolume,
+  pose: BookPose,
+  curveRotation: number | null,
+) {
   if (pose === 'detail') return 'translate3d(0, 0, 0) rotateY(0deg) rotateZ(0deg)';
   if (pose === 'hover') return 'translate3d(0, -4px, 24px) rotateY(78deg) rotateZ(0deg)';
-  return `translate3d(0, 0, 0) rotateY(${90 + curveRotation}deg) rotateZ(${volume.lean}deg)`;
+
+  const shelfYaw = curveRotation === null
+    ? 'calc(90deg + var(--curve-rotate, 0deg))'
+    : `${90 + curveRotation}deg`;
+
+  return `translate3d(0, 0, 0) rotateY(${shelfYaw}) rotateZ(${volume.lean}deg)`;
 }
 
 function ClosedBook({
@@ -123,7 +132,7 @@ function ClosedBook({
 }: {
   volume: LibraryVolume;
   pose: BookPose;
-  curveRotation?: number;
+  curveRotation?: number | null;
   motionMs?: number;
 }) {
   const artUrl = presentationArtUrl(volume);
@@ -239,7 +248,7 @@ function SpatialVolume({
     <ClosedBook
       volume={volume}
       pose={hovered && !selected ? 'hover' : 'shelf'}
-      curveRotation={0}
+      curveRotation={null}
     />
   );
 
@@ -495,13 +504,6 @@ function SpatialShelf({
           const center = rect.left + rect.width / 2;
           const normalized = Math.max(-1, Math.min(1, (center - visibleCenter) / halfWidth));
           volume.style.setProperty('--curve-rotate', `${(normalized * 4).toFixed(2)}deg`);
-
-          const physicalBook = volume.querySelector<HTMLElement>('[data-closed-book]');
-          if (physicalBook && !volume.matches(':hover, :focus-visible')) {
-            const lean = Number.parseFloat(volume.style.getPropertyValue('--book-lean')) || 0;
-            const curve = normalized * 4;
-            physicalBook.style.transform = `translate3d(0, 0, 0) rotateY(${90 + curve}deg) rotateZ(${lean}deg)`;
-          }
         });
       });
     };
