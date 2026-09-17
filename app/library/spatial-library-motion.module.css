@@ -1,62 +1,383 @@
-.coverPeek {
+.volumeReset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+}
+
+.sourceHidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.closedBook {
   position: absolute;
-  z-index: 30;
+  left: 0;
   bottom: 0;
-  left: calc(100% + 2px);
-  width: calc(var(--book-height) * .6666667);
+  width: var(--cover-width);
   height: var(--book-height);
-  overflow: hidden;
-  border-radius: 3px 7px 7px 3px;
-  opacity: 0;
-  pointer-events: none;
-  transform: perspective(980px) translate3d(-2px, 0, 0) rotateY(-89deg);
-  transform-origin: left center;
+  transform-origin: left bottom;
   transform-style: preserve-3d;
-  transition:
-    opacity 150ms ease,
-    transform 360ms cubic-bezier(.22, 1, .36, 1),
-    box-shadow 360ms ease;
-  will-change: transform, opacity;
+  will-change: transform, filter;
 }
 
-.coverPeekVisible {
-  opacity: 1;
-  transform: perspective(980px) translate3d(0, -3px, 18px) rotateY(-72deg);
-  box-shadow: 14px 14px 28px rgba(31, 28, 24, .18);
-}
-
-.coverPeek img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: inherit;
+.frontFace,
+.backFace,
+.spineFace,
+.foreEdge,
+.topEdge,
+.bottomEdge {
+  position: absolute;
+  box-sizing: border-box;
   backface-visibility: hidden;
 }
 
-.detailFlight {
-  position: fixed;
-  overflow: visible;
-  transform-origin: left top;
-  transform-style: preserve-3d;
-  will-change: transform, opacity;
-}
-
-.detailBookObject {
-  position: absolute;
+.frontFace,
+.backFace {
   inset: 0;
-  overflow: visible;
+  overflow: hidden;
+  border: 1px solid rgba(31, 28, 24, .16);
   border-radius: 3px 7px 7px 3px;
   background: var(--spine-color);
+}
+
+.frontFace {
+  z-index: 3;
+  box-shadow:
+    inset 4px 0 7px rgba(31, 28, 24, .10),
+    inset -1px 0 0 rgba(255, 255, 255, .10);
+}
+
+.backFace {
+  z-index: 0;
+  transform: translateZ(calc(var(--book-thickness) * -1)) rotateY(180deg);
+  background: color-mix(in srgb, var(--spine-color) 90%, #211c17);
+}
+
+.coverArtwork {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.coverFallback {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  gap: 18px;
+  padding: 13%;
+  text-align: center;
+}
+
+.coverFallback strong {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(1rem, 2.2vw, 2rem);
+  font-weight: 400;
+  line-height: 1.02;
+}
+
+.coverFallback span {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: .58rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  opacity: .78;
+}
+
+.spineFace {
+  z-index: 4;
+  top: 0;
+  right: 100%;
+  bottom: 0;
+  display: grid;
+  width: var(--book-thickness);
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(31, 28, 24, .18);
+  border-right: 0;
+  border-radius: 3px 0 0 3px;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.11), transparent 28%, rgba(0,0,0,.15)),
+    var(--spine-color);
+  color: var(--book-ink);
+  transform: rotateY(-90deg);
+  transform-origin: right center;
+  box-shadow:
+    inset -3px 0 7px rgba(31, 28, 24, .11),
+    inset 2px 0 3px rgba(255, 255, 255, .06);
+}
+
+.spineTitle,
+.spineCreator {
+  position: absolute;
+  left: 50%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-align: center;
+  transform: translateX(-50%) rotate(90deg);
+}
+
+.spineTitle {
+  top: 50%;
+  width: calc(var(--book-height) - 74px);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: .68rem;
+  letter-spacing: .04em;
+}
+
+.spineCreator {
+  bottom: 54px;
+  width: calc(var(--book-height) - 160px);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: .44rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  opacity: .75;
+}
+
+.spineBand {
+  position: absolute;
+  top: 17%;
+  right: 0;
+  left: 0;
+  height: 7px;
+  border-top: 1px solid rgba(255,255,255,.18);
+  border-bottom: 1px solid rgba(0,0,0,.13);
+  background: var(--band-color);
+}
+
+.foreEdge {
+  z-index: 2;
+  top: 7px;
+  bottom: 7px;
+  left: 100%;
+  width: var(--book-thickness);
+  border: 1px solid rgba(31, 28, 24, .12);
+  border-left: 0;
+  background:
+    linear-gradient(90deg, rgba(136,112,77,.10), transparent 28%, rgba(255,255,255,.16)),
+    repeating-linear-gradient(0deg, #eee6d5 0, #eee6d5 2px, #ded3c0 3px, #f2eadb 4px, #eee6d5 6px);
+  transform: rotateY(90deg);
   transform-origin: left center;
+}
+
+.topEdge,
+.bottomEdge {
+  z-index: 2;
+  left: 3px;
+  width: calc(100% - 8px);
+  height: var(--book-thickness);
+  border: 1px solid rgba(31, 28, 24, .11);
+  background:
+    linear-gradient(90deg, rgba(118,92,60,.1), transparent 18%, rgba(255,255,255,.15)),
+    repeating-linear-gradient(90deg, #eee6d5 0 3px, #dfd4c0 4px, #f2eadc 5px);
+}
+
+.topEdge {
+  top: 7px;
+  transform: rotateX(90deg);
+  transform-origin: top center;
+}
+
+.bottomEdge {
+  bottom: 7px;
+  transform: rotateX(-90deg);
+  transform-origin: bottom center;
+}
+
+.hardcover .frontFace {
+  inset: -4px -4px -4px 0;
+  box-shadow:
+    inset 5px 0 8px rgba(31, 28, 24, .08),
+    0 0 0 1px rgba(255,255,255,.05),
+    2px 3px 0 rgba(31, 28, 24, .05);
+}
+
+.hardcover .spineFace {
+  top: -4px;
+  bottom: -4px;
+}
+
+.cloth .frontFace::after,
+.cloth .spineFace::after {
+  content: '';
+  position: absolute;
+  z-index: 5;
+  inset: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.13) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,.14) 0 1px, transparent 1px 4px);
+  opacity: .38;
+  mix-blend-mode: soft-light;
+}
+
+.facsimile .frontFace::after {
+  content: none;
+}
+
+.jacketed .frontFace {
+  box-shadow:
+    inset 4px 0 7px rgba(31, 28, 24, .07),
+    2px 0 0 rgba(239,229,210,.75),
+    4px 0 8px rgba(31,28,24,.10);
+}
+
+.jacketed .frontFace::after {
+  content: '';
+  position: absolute;
+  z-index: 6;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(112deg, transparent 8%, rgba(255,255,255,.14) 24%, transparent 42%);
+}
+
+.bookFlight {
+  position: fixed;
+  z-index: 2;
+  width: var(--cover-width);
+  height: var(--book-height);
+  transform-origin: left top;
   transform-style: preserve-3d;
-  will-change: transform, box-shadow;
+  will-change: transform;
+}
+
+.detailOverlay {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  overflow: hidden;
+  background: rgba(27, 24, 20, 0);
+  perspective: 1800px;
+  transition: background 260ms ease;
+}
+
+.detailOverlayOpen {
+  background: rgba(27, 24, 20, .18);
+}
+
+.detailBookHit {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  transform-style: preserve-3d;
+}
+
+.detailInfo {
+  position: fixed;
+  z-index: 3;
+  top: 50%;
+  left: 66%;
+  width: min(320px, 28vw);
+  color: #f7f1e7;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-44%);
+  transition: opacity 220ms ease, transform 320ms cubic-bezier(.22, 1, .36, 1);
+}
+
+.detailInfoVisible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(-50%);
+}
+
+.detailKicker,
+.detailFacts,
+.detailInstruction,
+.detailReturn {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.detailKicker,
+.detailFacts {
+  font-size: .63rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  opacity: .72;
+}
+
+.detailInfo h2 {
+  margin: 12px 0 7px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(1.8rem, 3vw, 2.9rem);
+  font-weight: 400;
+  letter-spacing: -.025em;
+  line-height: 1;
+}
+
+.detailCreator {
+  margin: 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: .98rem;
+  opacity: .78;
+}
+
+.detailFacts {
+  margin: 25px 0 0;
+  line-height: 1.55;
+}
+
+.detailInstruction {
+  margin: 15px 0 0;
+  font-size: .72rem;
+  line-height: 1.45;
+  opacity: .72;
+}
+
+.detailReturn {
+  margin-top: 22px;
+  padding: 0 0 3px;
+  border: 0;
+  border-bottom: 1px solid rgba(255,255,255,.42);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: .72rem;
+}
+
+@media (max-width: 860px) {
+  .detailInfo {
+    top: auto;
+    right: 24px;
+    bottom: 24px;
+    left: 24px;
+    width: auto;
+    text-align: center;
+    transform: translateY(12px);
+  }
+
+  .detailInfoVisible {
+    transform: translateY(0);
+  }
+
+  .detailFacts {
+    margin-top: 12px;
+  }
+
+  .detailReturn {
+    margin-top: 14px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .coverPeek,
-  .detailFlight,
-  .detailBookObject {
+  .closedBook,
+  .bookFlight,
+  .detailOverlay,
+  .detailInfo {
     transition: none !important;
   }
 }
