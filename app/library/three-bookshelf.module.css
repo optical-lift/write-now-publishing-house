@@ -1,10 +1,10 @@
 .stage {
   position: relative;
-  min-height: 485px;
+  min-height: 500px;
   overflow: hidden;
   background:
-    radial-gradient(circle at 50% 43%, rgba(255, 255, 255, .46), transparent 34%),
-    linear-gradient(180deg, rgba(255,255,255,.18), transparent 58%),
+    radial-gradient(circle at 50% 38%, rgba(255,255,255,.34), transparent 34%),
+    linear-gradient(180deg, rgba(255,255,255,.12), transparent 64%),
     var(--paper, #f4efe5);
 }
 
@@ -20,12 +20,12 @@
   position: absolute;
   z-index: 2;
   top: 50%;
-  left: 66%;
-  width: min(330px, 28vw);
+  left: 67%;
+  width: min(320px, 27vw);
   color: var(--ink, #211d19);
   opacity: 0;
   pointer-events: none;
-  transform: translateY(-44%);
+  transform: translateY(-46%);
   transition:
     opacity 220ms ease,
     transform 320ms cubic-bezier(.22, 1, .36, 1);
@@ -46,16 +46,16 @@
 
 .kicker,
 .facts {
-  font-size: .65rem;
+  font-size: .64rem;
   letter-spacing: .14em;
   text-transform: uppercase;
-  opacity: .66;
+  opacity: .64;
 }
 
 .detail h2 {
   margin: 11px 0 8px;
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: clamp(2rem, 3.2vw, 3.15rem);
+  font-size: clamp(1.9rem, 3vw, 3rem);
   font-weight: 400;
   letter-spacing: -.03em;
   line-height: .98;
@@ -64,46 +64,32 @@
 .creator {
   margin: 0;
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 1rem;
-  opacity: .76;
+  font-size: .98rem;
+  opacity: .74;
 }
 
 .facts {
-  margin: 26px 0 0;
+  margin: 24px 0 0;
   line-height: 1.55;
 }
 
 .instruction {
   margin: 14px 0 0;
-  font-size: .74rem;
+  font-size: .73rem;
   line-height: 1.5;
-  opacity: .62;
+  opacity: .6;
 }
 
 .returnButton {
-  margin-top: 24px;
+  margin-top: 22px;
   padding: 0 0 4px;
   border: 0;
   border-bottom: 1px solid currentColor;
   background: transparent;
   color: inherit;
   cursor: pointer;
-  font-size: .74rem;
-  opacity: .72;
-}
-
-.status {
-  position: absolute;
-  z-index: 2;
-  right: 22px;
-  bottom: 18px;
-  margin: 0;
-  color: var(--ink-soft, #6d665d);
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: .62rem;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  pointer-events: none;
+  font-size: .73rem;
+  opacity: .7;
 }
 
 @media (max-width: 860px) {
