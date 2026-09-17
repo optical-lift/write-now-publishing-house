@@ -12,13 +12,36 @@
     "caseMaterial": "gray book cloth over case boards; exact WNPH cloth and board specification pending",
     "surfaceFinish": "cloth"
   },
-  "artwork": {},
+  "artwork": {
+    "frontCover": {
+      "uri": "/recovered-covers/the-wish-fairy-and-dewy-dear/front-cover-restored-1024.webp",
+      "mediaType": "image/webp",
+      "widthPx": 1024,
+      "heightPx": 1536,
+      "sha256": "2acdb1590361979b6e8ea6d798336188a38d9b66fa2ac7a243a0984d4da1676d"
+    },
+    "caseFront": {
+      "uri": "/recovered-covers/the-wish-fairy-and-dewy-dear/front-cover-restored-1024.webp",
+      "mediaType": "image/webp",
+      "widthPx": 1024,
+      "heightPx": 1536,
+      "sha256": "2acdb1590361979b6e8ea6d798336188a38d9b66fa2ac7a243a0984d4da1676d"
+    }
+  },
   "presentation": {},
   "materialProfile": {
-    "cover": null,
+    "cover": "restored front-cover artwork supplied at 1024 x 1536 px; web derivative encoded without redesign",
     "case": "gray cloth case",
     "jacket": null,
     "pages": null
   },
-  "provenance": []
+  "provenance": [
+    {
+      "assetUri": "/recovered-covers/the-wish-fairy-and-dewy-dear/front-cover-restored-1024.webp",
+      "kind": "generated-presentation",
+      "createdAt": "2026-09-17T16:45:00Z",
+      "generator": "deterministic WebP derivative from the supplied WNPH restored 1024 x 1536 cover PNG",
+      "generatorVersion": null
+    }
+  ]
 }
