@@ -9,6 +9,7 @@ import styles from './spatial-library.module.css';
 
 type SpatialLibraryProps = {
   library: WnphPublicLibrary;
+  showDirectory?: boolean;
 };
 
 type SpatialShelfProps = {
@@ -242,7 +243,7 @@ function SpatialShelf({ shelf, books, onSelect }: SpatialShelfProps) {
   );
 }
 
-export default function SpatialLibrary({ library }: SpatialLibraryProps) {
+export default function SpatialLibrary({ library, showDirectory = true }: SpatialLibraryProps) {
   const [selection, setSelection] = useState<SelectedVolume | null>(null);
 
   const allWorksShelf = useMemo<WnphPublicLibraryShelf>(() => ({
@@ -272,7 +273,7 @@ export default function SpatialLibrary({ library }: SpatialLibraryProps) {
       <div className={`${styles.libraryScene} ${selection ? styles.sceneMuted : ''}`}>
         <SpatialShelf shelf={allWorksShelf} books={library.books} onSelect={handleSelect} />
 
-        {library.shelves.length > 0 ? (
+        {showDirectory && library.shelves.length > 0 ? (
           <nav className={styles.shelfDirectory} aria-label="Browse library shelves">
             <div>
               <div className={styles.shelfEyebrow}>Browse by shelf</div>
