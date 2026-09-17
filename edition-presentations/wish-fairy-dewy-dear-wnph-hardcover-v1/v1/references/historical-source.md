@@ -40,8 +40,8 @@ The WNPH restored Manifestation therefore adopts:
 
 - hardcover binding;
 - cloth-case construction for the current governed package;
-- a 4.25 × 5.5 inch trim target;
-- gray-cloth and green-lettering/art character.
+- gray-cloth and green-lettering/art character;
+- the historical approximately 5.5 × 4.25 inch bound-book size as proportion/reference evidence only, not as an exact WNPH trim specification.
 
 The historically evidenced matching dust jacket remains part of the restoration target, but it is not yet promoted to active EPP construction because no governed jacket spread or complete jacket specification has been approved.
 
@@ -49,6 +49,7 @@ The historically evidenced matching dust jacket remains part of the restoration 
 
 This evidence does not by itself establish:
 
+- final WNPH trim width and height;
 - WNPH final print page count;
 - spine width;
 - exact cloth, board, page, or jacket stock;
