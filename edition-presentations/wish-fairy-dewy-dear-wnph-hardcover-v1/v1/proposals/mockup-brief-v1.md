@@ -19,13 +19,13 @@ The recovered image is the graphic cover input. This workflow does not redesign,
 
 Use the Henry Altemus c1922 physical edition as the restoration target now intentionally adopted for the WNPH physical edition:
 
-- approximately 4.25 × 5.5 inch trim;
+- historical bound-book size approximately 4.25 × 5.5 inches, used as a proportion reference rather than an exact WNPH trim specification;
 - gray cloth case;
 - green lettering/art treatment;
 - book-specific multicolor cover image/appliqué character;
 - matching white coated dust-jacket character, pending approved jacket artwork/specification.
 
-The active v1 mockup construction is `cloth-case`. Do not fabricate a jacket spread, spine width, stock, or back/spine graphics merely to complete the render.
+The active v1 mockup construction is `cloth-case`. Do not fabricate final trim, jacket spread, spine width, stock, or back/spine graphics merely to complete the render.
 
 ## Required artwork input
 
@@ -62,4 +62,4 @@ The homepage shelf may position, lean, scale, and animate the resulting presenta
 
 ## Stop condition
 
-This brief is complete when the high-resolution recovered artwork and authoritative physical inputs are sufficient to run a real cloth-hardcover template job. Unknown manufacturing facts remain unknown rather than being inferred by the website.
+This brief is complete when the high-resolution recovered artwork and authoritative physical inputs, including final WNPH manufacturing geometry, are sufficient to run a real cloth-hardcover template job. Unknown manufacturing facts remain unknown rather than being inferred by the website.
