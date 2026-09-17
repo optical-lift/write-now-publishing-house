@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "editionId": "wish-fairy-dewy-dear:wnph-hardcover-v1",
+  "packageVersion": 1,
+  "status": "draft",
+  "createdAt": "2026-09-17T15:00:00Z",
+  "approvedAt": null,
+  "supersedesPackageVersion": null,
+  "physical": {
+    "binding": "hardcover",
+    "construction": "cloth-case",
+    "trim": {
+      "widthIn": 4.25,
+      "heightIn": 5.5
+    },
+    "caseMaterial": "gray cloth; historically grounded restoration target",
+    "surfaceFinish": "cloth",
+    "foilOrStamping": "green lettering/art treatment; exact production method unresolved"
+  },
+  "artwork": {},
+  "presentation": {},
+  "materialProfile": {
+    "cover": null,
+    "case": "gray cloth",
+    "jacket": "historically evidenced matching white coated dust jacket; pending governed artwork/specification",
+    "pages": null
+  },
+  "provenance": []
+}
