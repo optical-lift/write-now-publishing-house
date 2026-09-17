@@ -47,7 +47,7 @@
 .stage {
   position: relative;
   overflow: hidden;
-  min-height: 485px;
+  min-height: 515px;
   border: 1px solid var(--rule);
   background:
     linear-gradient(180deg, rgba(255,255,255,.3), transparent 38%),
@@ -61,8 +61,8 @@
   display: flex;
   align-items: flex-end;
   gap: 7px;
-  min-height: 470px;
-  padding: 132px 34px 32px;
+  min-height: 500px;
+  padding: 145px 34px 32px;
   overflow-x: auto;
   overflow-y: hidden;
   perspective: 1400px;
@@ -291,12 +291,12 @@
   }
 
   .stage {
-    min-height: 445px;
+    min-height: 505px;
   }
 
   .rail {
-    min-height: 430px;
-    padding: 116px 22px 30px;
+    min-height: 490px;
+    padding: 145px 22px 30px;
     gap: 6px;
   }
 
