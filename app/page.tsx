@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { getWnphPublicLibrary, type WnphPublicLibraryBook } from '../lib/wnph-public';
-import BookObject from './library/book-object';
+import { getWnphPublicLibrary } from '../lib/wnph-public';
+import SpatialLibrary from './library/spatial-library';
 import styles from './library/library.module.css';
 
 export default async function HomePage() {
@@ -24,45 +24,13 @@ export default async function HomePage() {
 
       <section className={styles.library} aria-label="Library shelves">
         <div className={styles.inner}>
-          <header className={styles.homeLibraryIntro}>
-            <div className={styles.eyebrow}>The Library</div>
-          </header>
-
           {!library ? (
             <div className={styles.empty}>The library catalogue is temporarily unavailable.</div>
           ) : (
-            <HomeShelves library={library} />
+            <SpatialLibrary library={library} showDirectory={false} presentation="dissolved" />
           )}
         </div>
       </section>
     </main>
   );
-}
-
-function HomeShelves({ library }: { library: NonNullable<Awaited<ReturnType<typeof getWnphPublicLibrary>>> }) {
-  const booksBySlug = new Map(library.books.map((book) => [book.public_slug, book]));
-  const shown = new Set<string>();
-
-  return library.shelves.map((shelf) => {
-    const uniqueBooks = shelf.book_slugs
-      .filter((slug) => !shown.has(slug))
-      .map((slug) => booksBySlug.get(slug))
-      .filter((book): book is WnphPublicLibraryBook => Boolean(book));
-
-    uniqueBooks.forEach((book) => shown.add(book.public_slug));
-
-    return (
-      <section className={styles.shelf} key={shelf.shelf_key}>
-        <div className={styles.shelfHeading}>
-          <h2><Link href={`/library/${shelf.shelf_key}`}>{shelf.title}</Link></h2>
-          <Link className={styles.shelfLink} href={`/library/${shelf.shelf_key}`}>View shelf →</Link>
-        </div>
-        {uniqueBooks.length > 0 ? (
-          <div className={styles.books}>
-            {uniqueBooks.map((book) => <BookObject book={book} key={book.public_slug} />)}
-          </div>
-        ) : null}
-      </section>
-    );
-  });
 }

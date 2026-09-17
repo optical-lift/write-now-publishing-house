@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "editionId": "example-cloth-hardcover-edition",
+  "packageVersion": 1,
+  "status": "draft",
+  "createdAt": "2026-09-16T00:00:00Z",
+  "approvedAt": null,
+  "supersedesPackageVersion": null,
+  "physical": {
+    "binding": "hardcover",
+    "construction": "cloth-case",
+    "trim": { "widthIn": 6, "heightIn": 9 },
+    "pageCount": 304,
+    "spineWidthIn": 0.92,
+    "coverStock": null,
+    "caseMaterial": "forest-green woven book cloth over rigid board",
+    "jacketStock": null,
+    "pageStock": "cream uncoated text stock",
+    "surfaceFinish": "cloth",
+    "foilOrStamping": "cream foil title and author on front case and spine"
+  },
+  "artwork": {
+    "caseFront": {
+      "uri": "asset://examples/cloth-hardcover/case-front",
+      "mediaType": "image/svg+xml"
+    },
+    "caseSpine": {
+      "uri": "asset://examples/cloth-hardcover/case-spine",
+      "mediaType": "image/svg+xml"
+    }
+  },
+  "presentation": {
+    "shelfSpine": {
+      "uri": "asset://examples/cloth-hardcover/shelf-spine",
+      "mediaType": "image/png"
+    },
+    "frontCover": {
+      "uri": "asset://examples/cloth-hardcover/front-cover",
+      "mediaType": "image/png"
+    },
+    "detailMockup": {
+      "uri": "asset://examples/cloth-hardcover/detail-mockup",
+      "mediaType": "image/png"
+    }
+  },
+  "materialProfile": {
+    "cover": null,
+    "case": "cloth",
+    "jacket": null,
+    "pages": "paper-block"
+  },
+  "provenance": []
+}

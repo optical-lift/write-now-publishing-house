@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "editionId": "example-paperback-edition",
+  "packageVersion": 1,
+  "status": "draft",
+  "createdAt": "2026-09-16T00:00:00Z",
+  "approvedAt": null,
+  "supersedesPackageVersion": null,
+  "physical": {
+    "binding": "paperback",
+    "construction": "paperback-wrap",
+    "trim": { "widthIn": 5.5, "heightIn": 8.5 },
+    "pageCount": 248,
+    "spineWidthIn": 0.56,
+    "coverStock": "matte coated cover stock",
+    "caseMaterial": null,
+    "jacketStock": null,
+    "pageStock": "cream uncoated text stock",
+    "surfaceFinish": "matte",
+    "foilOrStamping": null
+  },
+  "artwork": {
+    "fullWrap": {
+      "uri": "asset://examples/paperback/full-wrap",
+      "mediaType": "image/tiff"
+    }
+  },
+  "presentation": {
+    "shelfSpine": {
+      "uri": "asset://examples/paperback/shelf-spine",
+      "mediaType": "image/png"
+    },
+    "frontCover": {
+      "uri": "asset://examples/paperback/front-cover",
+      "mediaType": "image/png"
+    },
+    "detailMockup": {
+      "uri": "asset://examples/paperback/detail-mockup",
+      "mediaType": "image/png"
+    }
+  },
+  "materialProfile": {
+    "cover": "coated-paper-matte",
+    "case": null,
+    "jacket": null,
+    "pages": "paper-block"
+  },
+  "provenance": []
+}

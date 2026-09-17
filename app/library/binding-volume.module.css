@@ -1,0 +1,543 @@
+.demoButton {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.sourceHidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.hardcover > span:last-child,
+.paperback > span:last-child {
+  overflow: visible;
+}
+
+.caseTop,
+.caseBottom,
+.headbandTop,
+.headbandBottom,
+.hinge,
+.jacketSkin,
+.materialTexture {
+  display: none;
+  pointer-events: none;
+}
+
+.materialTexture {
+  position: absolute;
+  z-index: 9;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.paperback > span:last-child {
+  border-radius: 5px 7px 7px 4px;
+  box-shadow:
+    -1px 0 0 rgba(255,255,255,.08) inset,
+    2px 0 0 rgba(0,0,0,.09) inset,
+    5px 9px 15px rgba(31, 28, 24, .13);
+}
+
+.paperback > span:last-child::before {
+  top: 2px;
+  bottom: 2px;
+  border-radius: 0 3px 3px 0;
+}
+
+.paperback > span:last-child::after {
+  inset: 4px 3px;
+  border-color: rgba(255,255,255,.06);
+}
+
+.paperback .hinge {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: 4px;
+  display: block;
+  width: 1px;
+  background: rgba(0,0,0,.18);
+  box-shadow: 1px 0 0 rgba(255,255,255,.08);
+}
+
+.paperback .materialTexture {
+  display: block;
+  opacity: .18;
+  background:
+    radial-gradient(circle at 22% 18%, rgba(255,255,255,.32) 0 1px, transparent 1.4px),
+    radial-gradient(circle at 68% 62%, rgba(0,0,0,.2) 0 .7px, transparent 1.1px),
+    linear-gradient(90deg, rgba(255,255,255,.08), transparent 28%, rgba(0,0,0,.07));
+  background-size: 17px 19px, 13px 15px, 100% 100%;
+  mix-blend-mode: soft-light;
+}
+
+.hardcover > span:last-child {
+  border-radius: 3px 5px 4px 3px;
+  box-shadow:
+    -3px 0 0 rgba(255,255,255,.08) inset,
+    4px 0 0 rgba(0,0,0,.14) inset,
+    8px 12px 21px rgba(31, 28, 24, .19);
+}
+
+.hardcover > span:last-child::before {
+  top: 8px;
+  bottom: 8px;
+  border-color: rgba(31, 28, 24, .14);
+}
+
+.hardcover .caseTop,
+.hardcover .caseBottom {
+  position: absolute;
+  z-index: 4;
+  right: -2px;
+  left: -2px;
+  display: block;
+  height: 4px;
+  border-radius: 2px;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.13), transparent 35%, rgba(0,0,0,.12)),
+    var(--spine-color);
+}
+
+.hardcover .caseTop {
+  top: -3px;
+  box-shadow: 0 -1px 0 rgba(255,255,255,.12);
+}
+
+.hardcover .caseBottom {
+  bottom: -3px;
+  box-shadow: 0 1px 0 rgba(0,0,0,.12);
+}
+
+.hardcover .hinge {
+  position: absolute;
+  z-index: 3;
+  top: 7px;
+  bottom: 7px;
+  left: 5px;
+  display: block;
+  width: 2px;
+  border-left: 1px solid rgba(0,0,0,.24);
+  border-right: 1px solid rgba(255,255,255,.07);
+}
+
+.hardcover .headbandTop,
+.hardcover .headbandBottom {
+  position: absolute;
+  z-index: 12;
+  right: 2px;
+  display: block;
+  width: 7px;
+  height: 3px;
+  background: repeating-linear-gradient(90deg, var(--band-color) 0 2px, #e9dfc9 2px 4px);
+}
+
+.hardcover .headbandTop {
+  top: 5px;
+}
+
+.hardcover .headbandBottom {
+  bottom: 5px;
+}
+
+.hardcover:not(.jacketed) .materialTexture {
+  display: block;
+  opacity: .42;
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.14) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,.16) 0 1px, transparent 1px 4px),
+    linear-gradient(90deg, rgba(255,255,255,.12), transparent 30%, rgba(0,0,0,.12));
+  mix-blend-mode: soft-light;
+}
+
+.jacketed .jacketSkin {
+  position: absolute;
+  z-index: 8;
+  inset: -1px -2px;
+  display: block;
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 2px 5px 4px 2px;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.13), transparent 20%, transparent 72%, rgba(255,255,255,.08)),
+    linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.025));
+  box-shadow:
+    1px 0 0 rgba(0,0,0,.13),
+    0 0 0 1px rgba(255,255,255,.04) inset;
+}
+
+.jacketed .jacketSkin::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  right: -2px;
+  bottom: 4px;
+  width: 2px;
+  background: rgba(241,232,216,.75);
+  box-shadow: -1px 0 0 rgba(0,0,0,.09);
+}
+
+.jacketed .materialTexture {
+  display: block;
+  opacity: .16;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(255,255,255,.34) 0 .8px, transparent 1.2px),
+    linear-gradient(110deg, rgba(255,255,255,.12), transparent 32%, rgba(0,0,0,.05));
+  background-size: 15px 17px, 100% 100%;
+  mix-blend-mode: soft-light;
+}
+
+.unknownBinding > span:last-child {
+  filter: saturate(.92);
+}
+
+.detailGeometry {
+  transform-style: preserve-3d;
+}
+
+.detailGeometry::after {
+  content: none !important;
+}
+
+.detailCoverFace,
+.detailSpineFace,
+.detailPageFace,
+.detailBackFace,
+.detailTopEdge,
+.detailBottomEdge {
+  backface-visibility: hidden;
+}
+
+.coverArtwork {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+  clip-path: inset(0 round 3px 7px 7px 3px);
+}
+
+.detailMaterialOverlay,
+.detailBoardEdge,
+.detailJacketPaper,
+.detailJacketSheen {
+  position: absolute;
+  pointer-events: none;
+}
+
+.detailMaterialOverlay {
+  z-index: 5;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.detailBoardEdge {
+  z-index: 6;
+  inset: 0;
+  display: none;
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: inherit;
+  box-shadow:
+    inset -4px 0 0 rgba(0,0,0,.10),
+    inset 0 -3px 0 rgba(0,0,0,.06),
+    inset 0 3px 0 rgba(255,255,255,.04);
+}
+
+.paperback.detailGeometry .detailMaterialOverlay {
+  opacity: .26;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(255,255,255,.25) 0 .7px, transparent 1px),
+    radial-gradient(circle at 64% 70%, rgba(0,0,0,.15) 0 .6px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,.08), transparent 5%, transparent 94%, rgba(255,255,255,.08));
+  background-size: 16px 18px, 13px 14px, 100% 100%;
+  mix-blend-mode: soft-light;
+}
+
+.hardcover:not(.jacketed).detailGeometry .detailMaterialOverlay {
+  opacity: .55;
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.16) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,.18) 0 1px, transparent 1px 4px),
+    linear-gradient(90deg, rgba(255,255,255,.08), transparent 22%, rgba(0,0,0,.1));
+  mix-blend-mode: soft-light;
+}
+
+.hardcover.detailGeometry .detailBoardEdge {
+  display: block;
+}
+
+.jacketed.detailGeometry .detailCoverFace {
+  overflow: visible;
+}
+
+.jacketed.detailGeometry .detailMaterialOverlay {
+  opacity: .18;
+  background:
+    radial-gradient(circle at 20% 25%, rgba(255,255,255,.32) 0 .8px, transparent 1.1px),
+    linear-gradient(110deg, rgba(255,255,255,.11), transparent 28%, rgba(0,0,0,.04));
+  background-size: 17px 19px, 100% 100%;
+  mix-blend-mode: soft-light;
+  clip-path: inset(0 round 3px 7px 7px 3px);
+}
+
+.detailJacketPaper {
+  display: none;
+}
+
+.jacketed .detailJacketPaper {
+  z-index: 7;
+  inset: -2px -3px -2px -1px;
+  display: block;
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 2px 8px 8px 2px;
+  box-shadow:
+    2px 0 0 rgba(239,229,210,.78),
+    4px 0 7px rgba(0,0,0,.10),
+    inset 3px 0 5px rgba(0,0,0,.06);
+}
+
+.jacketed .detailJacketPaper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 5%;
+  width: 2px;
+  background: linear-gradient(90deg, rgba(0,0,0,.13), rgba(255,255,255,.10));
+  opacity: .55;
+}
+
+.jacketed .detailJacketPaper::after {
+  content: '';
+  position: absolute;
+  top: 4%;
+  right: -3px;
+  bottom: 4%;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: #eee3cf;
+  box-shadow: -1px 0 0 rgba(0,0,0,.10);
+}
+
+.detailJacketSheen {
+  display: none;
+}
+
+.jacketed .detailJacketSheen {
+  z-index: 9;
+  inset: -1px;
+  display: block;
+  border-radius: inherit;
+  background:
+    linear-gradient(112deg, transparent 8%, rgba(255,255,255,.16) 24%, transparent 42%),
+    linear-gradient(90deg, rgba(0,0,0,.06), transparent 8%, transparent 86%, rgba(255,255,255,.08));
+  opacity: .75;
+  clip-path: inset(0 round 3px 7px 7px 3px);
+}
+
+.detailSpineFace {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 100%;
+  display: grid;
+  width: var(--detail-spine-width);
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,.18);
+  border-right: 0;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.1), transparent 28%, rgba(0,0,0,.16)),
+    var(--spine-color);
+  color: var(--book-ink);
+  transform: rotateY(-90deg);
+  transform-origin: right center;
+}
+
+.detailSpineFace span {
+  position: relative;
+  z-index: 5;
+  width: calc(var(--target-height) - 72px);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-align: center;
+  transform: rotate(90deg);
+  font-size: .67rem;
+  letter-spacing: .045em;
+}
+
+.detailSpineFace i {
+  position: absolute;
+  z-index: 6;
+  top: 7px;
+  bottom: 7px;
+  right: 4px;
+  width: 1px;
+  background: rgba(0,0,0,.2);
+  box-shadow: 1px 0 0 rgba(255,255,255,.08);
+}
+
+.hardcover:not(.jacketed).detailGeometry .detailSpineFace::before {
+  content: '';
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.14) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,.18) 0 1px, transparent 1px 4px);
+  opacity: .5;
+  mix-blend-mode: soft-light;
+}
+
+.jacketed.detailGeometry .detailSpineFace::before {
+  content: '';
+  position: absolute;
+  z-index: 3;
+  inset: -1px;
+  border: 1px solid rgba(255,255,255,.13);
+  background: linear-gradient(110deg, rgba(255,255,255,.13), transparent 30%, rgba(0,0,0,.05));
+  box-shadow: inset -3px 0 4px rgba(0,0,0,.08);
+}
+
+.detailPageFace {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 100%;
+  width: var(--detail-depth);
+  border: 1px solid rgba(31,28,24,.12);
+  border-left: 0;
+  background:
+    linear-gradient(90deg, rgba(136,112,77,.12), transparent 28%, rgba(255,255,255,.16)),
+    repeating-linear-gradient(0deg, #eee6d5 0, #eee6d5 2px, #ded3c0 3px, #f2eadb 4px, #eee6d5 6px);
+  box-shadow:
+    inset 3px 0 4px rgba(80,59,37,.12),
+    inset -1px 0 0 rgba(255,255,255,.32);
+  transform: rotateY(90deg);
+  transform-origin: left center;
+}
+
+.detailTopEdge,
+.detailBottomEdge {
+  position: absolute;
+  left: 1px;
+  width: calc(100% - 2px);
+  height: var(--detail-depth);
+  border: 1px solid rgba(31,28,24,.11);
+  background:
+    linear-gradient(90deg, rgba(118,92,60,.1), transparent 18%, rgba(255,255,255,.15)),
+    repeating-linear-gradient(90deg, #eee6d5 0 3px, #dfd4c0 4px, #f2eadc 5px);
+}
+
+.detailTopEdge {
+  top: 0;
+  transform: rotateX(90deg);
+  transform-origin: top center;
+}
+
+.detailBottomEdge {
+  bottom: 0;
+  transform: rotateX(-90deg);
+  transform-origin: bottom center;
+}
+
+.detailBackFace {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  border: 1px solid rgba(0,0,0,.15);
+  background: color-mix(in srgb, var(--spine-color) 88%, #211c17);
+  transform: translateZ(calc(var(--detail-depth) * -1)) rotateY(180deg);
+}
+
+.paperback.detailGeometry .detailSpineFace {
+  top: 2px;
+  bottom: 2px;
+  border-radius: 4px 0 0 4px;
+}
+
+.paperback.detailGeometry .detailPageFace {
+  top: 2px;
+  bottom: 2px;
+}
+
+.paperback.detailGeometry .detailCoverFace {
+  border-radius: 4px 7px 7px 4px;
+  box-shadow:
+    inset 3px 0 7px rgba(0,0,0,.08),
+    inset -1px 0 0 rgba(255,255,255,.08);
+}
+
+.paperback.detailGeometry .detailTopEdge,
+.paperback.detailGeometry .detailBottomEdge {
+  left: 2px;
+  width: calc(100% - 4px);
+}
+
+.hardcover.detailGeometry .detailCoverFace {
+  inset: -5px -5px -5px 0;
+  border-radius: 3px 7px 7px 3px;
+  box-shadow:
+    inset 5px 0 8px rgba(0,0,0,.08),
+    0 0 0 1px rgba(255,255,255,.05),
+    2px 3px 0 rgba(0,0,0,.05);
+}
+
+.hardcover.detailGeometry .detailSpineFace {
+  top: -5px;
+  bottom: -5px;
+  border-radius: 3px 0 0 3px;
+  box-shadow:
+    inset -4px 0 8px rgba(0,0,0,.12),
+    inset 2px 0 3px rgba(255,255,255,.06);
+}
+
+.hardcover.detailGeometry .detailPageFace {
+  top: 9px;
+  bottom: 9px;
+}
+
+.hardcover.detailGeometry .detailTopEdge {
+  top: 8px;
+  left: 3px;
+  width: calc(100% - 9px);
+}
+
+.hardcover.detailGeometry .detailBottomEdge {
+  bottom: 8px;
+  left: 3px;
+  width: calc(100% - 9px);
+}
+
+.jacketed .detailSpineFace {
+  box-shadow:
+    inset -4px 0 8px rgba(0,0,0,.1),
+    inset 0 0 0 1px rgba(255,255,255,.1),
+    -2px 0 0 rgba(239,229,210,.55);
+}
+
+@media (max-width: 700px) {
+  .hardcover .caseTop,
+  .hardcover .caseBottom {
+    height: 3px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .detailSpineFace,
+  .detailPageFace,
+  .detailCoverFace,
+  .detailTopEdge,
+  .detailBottomEdge {
+    transition: none;
+  }
+}
