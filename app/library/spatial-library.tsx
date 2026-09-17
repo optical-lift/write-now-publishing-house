@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, MouseEvent } from 'react';
 import type { WnphPublicLibrary, WnphPublicLibraryBook, WnphPublicLibraryShelf } from '../../lib/wnph-public';
 import {
@@ -12,6 +12,13 @@ import {
 import styles from './spatial-library.module.css';
 import bindingStyles from './binding-volume.module.css';
 
+type RectSnapshot = {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+};
+
 type SpatialLibraryProps = {
   library: WnphPublicLibrary;
   showDirectory?: boolean;
@@ -21,19 +28,16 @@ type SpatialLibraryProps = {
 type SpatialShelfProps = {
   shelf: WnphPublicLibraryShelf;
   books: WnphPublicLibraryBook[];
-  onSelect: (volume: LibraryVolume, origin: DOMRect) => void;
+  onSelect: (volume: LibraryVolume, source: HTMLElement) => void;
   dissolved?: boolean;
   demoVolumes?: LibraryVolume[];
+  selectedVolumeId?: string | null;
 };
 
 type SelectedVolume = {
   volume: LibraryVolume;
-  origin: {
-    top: number;
-    left: number;
-    width: number;
-    height: number;
-  };
+  sourceId: string;
+  origin: RectSnapshot;
   viewport: {
     width: number;
     height: number;
@@ -67,6 +71,19 @@ const dissolvedShelfStyle: CSSProperties = {
   boxShadow: '0 9px 24px rgba(31, 28, 24, .18), 0 -1px 0 rgba(31, 28, 24, .18)',
 };
 
+function rectSnapshot(rect: DOMRect): RectSnapshot {
+  return {
+    top: rect.top,
+    left: rect.left,
+    width: rect.width,
+    height: rect.height,
+  };
+}
+
+function volumeElementId(volume: LibraryVolume) {
+  return `library-volume-${volume.publicSlug}`;
+}
+
 function bindingClass(volume: LibraryVolume) {
   if (volume.binding === 'hardcover') return bindingStyles.hardcover;
   if (volume.binding === 'paperback') return bindingStyles.paperback;
@@ -89,6 +106,7 @@ function BookSpineAnatomy({ volume }: { volume: LibraryVolume }) {
       <span className={bindingStyles.headbandTop} />
       <span className={bindingStyles.headbandBottom} />
       <span className={bindingStyles.jacketSkin} />
+      <span className={bindingStyles.materialTexture} />
       <span className={styles.band} />
       <span className={styles.spineTitle}>{volume.title}</span>
       <span className={styles.spineCreator}>{volume.creator}</span>
@@ -100,9 +118,11 @@ function BookSpineAnatomy({ volume }: { volume: LibraryVolume }) {
 function SpatialVolume({
   volume,
   onSelect,
+  selected,
 }: {
   volume: LibraryVolume;
-  onSelect: (volume: LibraryVolume, origin: DOMRect) => void;
+  onSelect: (volume: LibraryVolume, source: HTMLElement) => void;
+  selected: boolean;
 }) {
   const style = {
     '--book-width': `${volume.width}px`,
@@ -119,6 +139,7 @@ function SpatialVolume({
     bindingClass(volume),
     volume.jacket ? bindingStyles.jacketed : '',
     volume.demo ? bindingStyles.demoButton : '',
+    selected ? bindingStyles.sourceHidden : '',
   ].filter(Boolean).join(' ');
 
   const content = (
@@ -137,16 +158,24 @@ function SpatialVolume({
     </>
   );
 
+  const commonProps = {
+    id: volumeElementId(volume),
+    'data-volume': '',
+    'data-volume-id': volume.publicSlug,
+    style,
+    className,
+    tabIndex: selected ? -1 : undefined,
+    'aria-hidden': selected || undefined,
+  };
+
   if (volume.demo) {
     return (
       <button
-        className={className}
+        {...commonProps}
         type="button"
         aria-label={`Inspect ${volume.title}, ${bindingLabel(volume)} demo`}
-        data-volume
-        style={style}
         onClick={(event: MouseEvent<HTMLButtonElement>) => {
-          onSelect(volume, event.currentTarget.getBoundingClientRect());
+          onSelect(volume, event.currentTarget);
         }}
       >
         {content}
@@ -156,15 +185,13 @@ function SpatialVolume({
 
   return (
     <Link
-      className={className}
+      {...commonProps}
       href={`/books/${volume.publicSlug}`}
       aria-label={`Open ${volume.title} by ${volume.creator}`}
-      data-volume
-      style={style}
       onClick={(event: MouseEvent<HTMLAnchorElement>) => {
         if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
         event.preventDefault();
-        onSelect(volume, event.currentTarget.getBoundingClientRect());
+        onSelect(volume, event.currentTarget);
       }}
     >
       {content}
@@ -174,6 +201,9 @@ function SpatialVolume({
 
 function VolumeDetail({ selection, onDismiss }: { selection: SelectedVolume; onDismiss: () => void }) {
   const [open, setOpen] = useState(false);
+  const [returnRect, setReturnRect] = useState<RectSnapshot>(selection.origin);
+  const [returning, setReturning] = useState(false);
+  const returningRef = useRef(false);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const volume = selection.volume;
   const compact = selection.viewport.width <= 860;
@@ -188,25 +218,24 @@ function VolumeDetail({ selection, onDismiss }: { selection: SelectedVolume; onD
     ? Math.max(24, selection.viewport.height * 0.08)
     : Math.max(34, (selection.viewport.height - targetHeight) / 2);
 
-  const detailStyle = {
-    top: open ? `${targetTop}px` : `${selection.origin.top}px`,
-    left: open ? `${targetLeft}px` : `${selection.origin.left}px`,
-    width: open ? `${targetWidth}px` : `${selection.origin.width}px`,
-    height: open ? `${targetHeight}px` : `${selection.origin.height}px`,
-    transform: open ? 'rotateY(0deg)' : 'rotateY(88deg)',
-    boxShadow: open ? '28px 38px 80px rgba(0,0,0,.35)' : '8px 18px 40px rgba(0,0,0,.08)',
-    '--target-height': `${targetHeight}px`,
-    '--detail-spine-width': `${Math.max(18, selection.origin.width)}px`,
-    '--detail-depth': `${Math.max(18, Math.min(34, volume.depth))}px`,
-    '--spine-color': volume.spineColor,
-    '--band-color': volume.bandColor,
-    '--book-ink': volume.inkColor,
-  } as CSSProperties;
+  const measureSource = useCallback((): RectSnapshot => {
+    const source = document.getElementById(selection.sourceId);
+    if (!source) return selection.origin;
+    return rectSnapshot(source.getBoundingClientRect());
+  }, [selection.origin, selection.sourceId]);
 
-  const dismiss = () => {
-    setOpen(false);
-    closeTimerRef.current = setTimeout(onDismiss, 940);
-  };
+  const dismiss = useCallback(() => {
+    if (returningRef.current) return;
+    returningRef.current = true;
+    const liveRect = measureSource();
+    setReturning(true);
+    setReturnRect(liveRect);
+
+    requestAnimationFrame(() => {
+      setOpen(false);
+      closeTimerRef.current = setTimeout(onDismiss, 980);
+    });
+  }, [measureSource, onDismiss]);
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => setOpen(true));
@@ -225,7 +254,25 @@ function VolumeDetail({ selection, onDismiss }: { selection: SelectedVolume; onD
       window.removeEventListener('keydown', handleKey);
       document.body.style.overflow = previousOverflow;
     };
-  }, []);
+  }, [dismiss]);
+
+  const closedLeft = returnRect.left + returnRect.width;
+  const artUrl = volume.coverArtUrl ?? volume.representativeImageUrl;
+
+  const detailStyle = {
+    top: open ? `${targetTop}px` : `${returnRect.top}px`,
+    left: open ? `${targetLeft}px` : `${closedLeft}px`,
+    width: open ? `${targetWidth}px` : `${returnRect.width}px`,
+    height: open ? `${targetHeight}px` : `${returnRect.height}px`,
+    transform: open ? 'rotateY(0deg)' : 'rotateY(90deg)',
+    boxShadow: open ? '28px 38px 80px rgba(0,0,0,.35)' : '8px 18px 40px rgba(0,0,0,.08)',
+    '--target-height': `${targetHeight}px`,
+    '--detail-spine-width': `${Math.max(18, returnRect.width)}px`,
+    '--detail-depth': `${Math.max(18, Math.min(34, volume.depth))}px`,
+    '--spine-color': volume.spineColor,
+    '--band-color': volume.bandColor,
+    '--book-ink': volume.inkColor,
+  } as CSSProperties;
 
   const frameClassName = [
     styles.detailBookFrame,
@@ -238,6 +285,7 @@ function VolumeDetail({ selection, onDismiss }: { selection: SelectedVolume; onD
     <div
       className={styles.detailOverlay}
       data-open={open ? 'true' : 'false'}
+      data-returning={returning ? 'true' : 'false'}
       role="dialog"
       aria-modal="true"
       aria-label={`${volume.title} by ${volume.creator}`}
@@ -247,8 +295,8 @@ function VolumeDetail({ selection, onDismiss }: { selection: SelectedVolume; onD
     >
       <div className={frameClassName} style={detailStyle} aria-hidden="true">
         <div className={`${styles.detailCover} ${bindingStyles.detailCoverFace}`}>
-          {volume.representativeImageUrl ? (
-            <img src={volume.representativeImageUrl} alt="" />
+          {artUrl ? (
+            <img className={bindingStyles.coverArtwork} src={artUrl} alt="" />
           ) : (
             <div className={styles.detailFallback}>
               <span>{volume.demo ? bindingLabel(volume) : volume.workType}</span>
@@ -256,6 +304,9 @@ function VolumeDetail({ selection, onDismiss }: { selection: SelectedVolume; onD
               <small>{volume.creator}</small>
             </div>
           )}
+          <span className={bindingStyles.detailMaterialOverlay} />
+          <span className={bindingStyles.detailBoardEdge} />
+          <span className={bindingStyles.detailJacketPaper} />
           <span className={bindingStyles.detailJacketSheen} />
         </div>
         <div className={bindingStyles.detailSpineFace}>
@@ -263,6 +314,8 @@ function VolumeDetail({ selection, onDismiss }: { selection: SelectedVolume; onD
           <i aria-hidden="true" />
         </div>
         <div className={bindingStyles.detailPageFace} />
+        <div className={bindingStyles.detailTopEdge} />
+        <div className={bindingStyles.detailBottomEdge} />
         <div className={bindingStyles.detailBackFace} />
       </div>
 
@@ -293,6 +346,7 @@ function SpatialShelf({
   onSelect,
   dissolved = false,
   demoVolumes = [],
+  selectedVolumeId = null,
 }: SpatialShelfProps) {
   const railRef = useRef<HTMLDivElement>(null);
   const volumes = useMemo(
@@ -354,7 +408,12 @@ function SpatialShelf({
         >
           {!isShortShelf ? <div className={styles.railSpacer} aria-hidden="true" /> : null}
           {volumes.map((volume) => (
-            <SpatialVolume volume={volume} onSelect={onSelect} key={volume.publicSlug} />
+            <SpatialVolume
+              volume={volume}
+              onSelect={onSelect}
+              selected={selectedVolumeId === volume.publicSlug}
+              key={volume.publicSlug}
+            />
           ))}
           {!isShortShelf ? <div className={styles.railSpacer} aria-hidden="true" /> : null}
         </div>
@@ -378,21 +437,17 @@ export default function SpatialLibrary({
     book_slugs: library.books.map((book) => book.public_slug),
   }), [library.books]);
 
-  const handleSelect = (volume: LibraryVolume, origin: DOMRect) => {
+  const handleSelect = useCallback((volume: LibraryVolume, source: HTMLElement) => {
     setSelection({
       volume,
-      origin: {
-        top: origin.top,
-        left: origin.left,
-        width: origin.width,
-        height: origin.height,
-      },
+      sourceId: source.id,
+      origin: rectSnapshot(source.getBoundingClientRect()),
       viewport: {
         width: window.innerWidth,
         height: window.innerHeight,
       },
     });
-  };
+  }, []);
 
   return (
     <>
@@ -403,6 +458,7 @@ export default function SpatialLibrary({
           onSelect={handleSelect}
           dissolved={dissolved}
           demoVolumes={dissolved ? DEMO_BINDING_VOLUMES : []}
+          selectedVolumeId={selection?.volume.publicSlug ?? null}
         />
 
         {showDirectory && library.shelves.length > 0 ? (
