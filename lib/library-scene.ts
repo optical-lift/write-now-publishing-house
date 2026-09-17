@@ -39,6 +39,8 @@ const palettes = [
   { spine: '#303c32', band: '#c0a168', ink: '#f5eddc' },
 ] as const;
 
+const WISH_FAIRY_RECOVERED_COVER = '/recovered-covers/the-wish-fairy-and-dewy-dear/front-cover-restored.jpg';
+
 function stableHash(value: string) {
   let hash = 2166136261;
   for (let index = 0; index < value.length; index += 1) {
@@ -92,6 +94,24 @@ const glassLanternCover = svgCover(`
   </svg>
 `);
 
+function projectWishFairyRecoveredFacsimile(base: LibraryVolume): LibraryVolume {
+  return {
+    ...base,
+    coverArtUrl: WISH_FAIRY_RECOVERED_COVER,
+    width: 36,
+    height: 304,
+    depth: 26,
+    lean: -0.9,
+    spineColor: '#766d5b',
+    bandColor: '#766d5b',
+    inkColor: '#294335',
+    binding: 'hardcover',
+    finish: 'cloth',
+    artworkMode: 'front-image',
+    jacket: false,
+  };
+}
+
 export function projectLibraryBookToVolume(book: WnphPublicLibraryBook): LibraryVolume {
   const seed = stableHash(`${book.bibliographic.work_key}:${book.public_slug}`);
   const palette = palettes[seed % palettes.length];
@@ -103,7 +123,7 @@ export function projectLibraryBookToVolume(book: WnphPublicLibraryBook): Library
   const mediaWeight = Math.min(book.media_count, 18) * 0.45;
   const imageUrl = book.representative_image?.url ?? null;
 
-  return {
+  const base: LibraryVolume = {
     publicSlug: book.public_slug,
     workKey: book.bibliographic.work_key,
     title: book.bibliographic.title,
@@ -124,6 +144,12 @@ export function projectLibraryBookToVolume(book: WnphPublicLibraryBook): Library
     finish: 'unknown',
     artworkMode: imageUrl ? 'front-image' : 'none',
   };
+
+  if (book.bibliographic.work_key === 'wish-fairy-and-dewy-dear') {
+    return projectWishFairyRecoveredFacsimile(base);
+  }
+
+  return base;
 }
 
 export const DEMO_BINDING_VOLUMES: LibraryVolume[] = [
