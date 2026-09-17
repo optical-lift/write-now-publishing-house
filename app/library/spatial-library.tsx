@@ -12,6 +12,7 @@ import {
 } from '../../lib/library-scene';
 import styles from './spatial-library.module.css';
 import bindingStyles from './binding-volume.module.css';
+import motionStyles from './spatial-library-motion.module.css';
 
 type RectSnapshot = {
   top: number;
@@ -40,11 +41,16 @@ type SelectedVolume = {
   volume: LibraryVolume;
   sourceId: string;
   origin: RectSnapshot;
+  sourceCurveRotation: number;
   viewport: {
     width: number;
     height: number;
   };
 };
+
+const DEWY_HIGH_RES_COVER = '/recovered-covers/the-wish-fairy-and-dewy-dear/front-cover-restored-1024.webp';
+const BOOK_FLIGHT_MS = 760;
+const BOOK_FLIGHT_EASE = 'cubic-bezier(.22, 1, .36, 1)';
 
 const dissolvedStageStyle: CSSProperties = {
   width: '100vw',
@@ -99,17 +105,21 @@ function bindingLabel(volume: LibraryVolume) {
   return 'binding unknown';
 }
 
+function presentationArtUrl(volume: LibraryVolume) {
+  if (volume.workKey === 'wish-fairy-and-dewy-dear') return DEWY_HIGH_RES_COVER;
+  return volume.coverArtUrl ?? volume.representativeImageUrl;
+}
+
 function BookSpineAnatomy({ volume, hovered }: { volume: LibraryVolume; hovered: boolean }) {
-  const hoverStyle = hovered
-    ? {
-        zIndex: 8,
-        transform: 'translate3d(0, -14px, 40px) rotateY(0deg) rotateZ(0deg)',
-        boxShadow: '8px 17px 26px rgba(31, 28, 24, .22)',
-      } as CSSProperties
-    : undefined;
+  const spineStyle = {
+    transform: `translate3d(0, ${hovered ? '-3px' : '0'}, ${hovered ? '14px' : '0'}) rotateY(var(--curve-rotate)) rotateZ(var(--book-lean))`,
+    boxShadow: hovered
+      ? '8px 15px 24px rgba(31, 28, 24, .20)'
+      : undefined,
+  } as CSSProperties;
 
   return (
-    <span className={styles.bookBody} aria-hidden="true" style={hoverStyle}>
+    <span className={styles.bookBody} aria-hidden="true" style={spineStyle}>
       <span className={bindingStyles.caseTop} />
       <span className={bindingStyles.caseBottom} />
       <span className={bindingStyles.hinge} />
@@ -137,7 +147,7 @@ function SpatialVolume({
   handoff: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
-  const hoverClearance = Math.max(22, Math.min(36, Math.round(volume.width * 0.82)));
+  const artUrl = presentationArtUrl(volume);
   const style = {
     '--book-width': `${volume.width}px`,
     '--book-height': `${volume.height}px`,
@@ -146,9 +156,7 @@ function SpatialVolume({
     '--spine-color': volume.spineColor,
     '--band-color': volume.bandColor,
     '--book-ink': volume.inkColor,
-    marginRight: hovered && !selected ? `${hoverClearance}px` : '0px',
     zIndex: hovered && !selected ? 18 : undefined,
-    transition: 'margin-right 260ms cubic-bezier(.2,.8,.2,1)',
   } as CSSProperties;
 
   const className = [
@@ -171,7 +179,17 @@ function SpatialVolume({
             : `${volume.chapterCount} chapters · ${volume.mediaCount} illustrations`}
         </small>
       </span>
+
       <BookSpineAnatomy volume={volume} hovered={hovered && !selected} />
+
+      {artUrl ? (
+        <span
+          className={`${motionStyles.coverPeek} ${hovered && !selected ? motionStyles.coverPeekVisible : ''}`}
+          aria-hidden="true"
+        >
+          <img src={artUrl} alt="" draggable={false} />
+        </span>
+      ) : null}
     </>
   );
 
@@ -241,17 +259,16 @@ function VolumeDetail({
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const volume = selection.volume;
   const compact = selection.viewport.width <= 860;
-  const nativeCoverCap = volume.workKey === 'wish-fairy-and-dewy-dear' ? 420 : 520;
 
   const targetHeight = compact
-    ? Math.max(260, Math.min(360, selection.viewport.height * 0.48))
-    : Math.max(300, Math.min(nativeCoverCap, selection.viewport.height - 92));
-  const targetWidth = Math.round(targetHeight * 0.68);
+    ? Math.max(260, Math.min(370, selection.viewport.height * 0.5))
+    : Math.max(320, Math.min(540, selection.viewport.height - 104));
+  const targetWidth = Math.round(targetHeight * (2 / 3));
   const targetCenterX = compact ? selection.viewport.width / 2 : selection.viewport.width * 0.36;
   const targetLeft = Math.max(24, targetCenterX - targetWidth / 2);
   const targetTop = compact
-    ? Math.max(24, selection.viewport.height * 0.08)
-    : Math.max(34, (selection.viewport.height - targetHeight) / 2);
+    ? Math.max(24, selection.viewport.height * 0.07)
+    : Math.max(36, (selection.viewport.height - targetHeight) / 2);
 
   const measureSource = useCallback((): RectSnapshot => {
     const source = document.getElementById(selection.sourceId);
@@ -270,7 +287,7 @@ function VolumeDetail({
     if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
     onReturnLanded(volume.publicSlug);
     setHandoff(true);
-    closeTimerRef.current = setTimeout(onDismiss, 170);
+    closeTimerRef.current = setTimeout(onDismiss, 140);
   }, [onDismiss, onReturnLanded, volume.publicSlug]);
 
   const dismiss = useCallback(() => {
@@ -283,17 +300,10 @@ function VolumeDetail({
       return;
     }
 
-    const liveRect = measureSource();
-    setReturnRect(liveRect);
+    setReturnRect(measureSource());
     setReturning(true);
-
-    requestAnimationFrame(() => {
-      setOpen(false);
-    });
-
-    // Transition completion is the primary handoff signal. This timeout is only
-    // a guard for browsers that suppress transitionend during interruption.
-    closeTimerRef.current = setTimeout(beginHandoff, 1050);
+    requestAnimationFrame(() => setOpen(false));
+    closeTimerRef.current = setTimeout(beginHandoff, BOOK_FLIGHT_MS + 180);
   }, [beginHandoff, measureSource, onDismiss, onReturnLanded, volume.publicSlug]);
 
   useEffect(() => {
@@ -309,7 +319,6 @@ function VolumeDetail({
     };
 
     window.addEventListener('keydown', handleKey);
-
     return () => {
       cancelAnimationFrame(firstFrame);
       cancelAnimationFrame(secondFrame);
@@ -319,30 +328,34 @@ function VolumeDetail({
     };
   }, [dismiss]);
 
-  const landingRotation = 72;
-  const landingProjection = Math.cos((landingRotation * Math.PI) / 180);
-  const returnScaleY = Math.max(0.05, returnRect.height / targetHeight);
-  const returnScaleX = Math.max(0.08, returnRect.width / (targetWidth * landingProjection));
-  const returnTranslateX = returnRect.left - targetLeft;
+  const sourceRight = returnRect.left + returnRect.width;
+  const returnTranslateX = sourceRight - targetLeft;
   const returnTranslateY = returnRect.top - targetTop;
-  const closedTransform = `translate3d(${returnTranslateX}px, ${returnTranslateY}px, 0) scale3d(${returnScaleX}, ${returnScaleY}, 1) rotateY(${landingRotation}deg) rotateZ(${volume.lean}deg)`;
-  const artUrl = volume.coverArtUrl ?? volume.representativeImageUrl;
+  const returnScaleY = Math.max(0.08, returnRect.height / targetHeight);
+  const shelfYRotation = 90 + selection.sourceCurveRotation;
+  const artUrl = presentationArtUrl(volume);
 
-  const detailStyle = {
+  const flightStyle = {
     top: `${targetTop}px`,
     left: `${targetLeft}px`,
     width: `${targetWidth}px`,
     height: `${targetHeight}px`,
-    transform: open ? 'translate3d(0, 0, 0) scale3d(1, 1, 1) rotateY(0deg) rotateZ(0deg)' : closedTransform,
-    transformOrigin: 'left top',
-    boxShadow: open ? '28px 38px 80px rgba(0,0,0,.35)' : '8px 18px 40px rgba(0,0,0,.08)',
+    transform: open
+      ? 'translate3d(0, 0, 0) scaleY(1)'
+      : `translate3d(${returnTranslateX}px, ${returnTranslateY}px, 0) scaleY(${returnScaleY})`,
     opacity: handoff ? 0 : 1,
+    transition: `transform ${BOOK_FLIGHT_MS}ms ${BOOK_FLIGHT_EASE}, opacity 130ms ease`,
+  } as CSSProperties;
+
+  const bookStyle = {
+    transform: open
+      ? 'rotateY(0deg) rotateZ(0deg)'
+      : `rotateY(${shelfYRotation}deg) rotateZ(${volume.lean}deg)`,
+    boxShadow: open
+      ? '28px 38px 80px rgba(0,0,0,.32)'
+      : '5px 8px 18px rgba(31, 28, 24, .14)',
     cursor: volume.demo || returning ? 'default' : 'pointer',
-    transition: 'transform 860ms cubic-bezier(.16, 1, .3, 1), box-shadow 860ms cubic-bezier(.16, 1, .3, 1), opacity 140ms ease',
-    willChange: 'transform, box-shadow, opacity',
-    '--target-top': `${targetTop}px`,
-    '--target-left': `${targetLeft}px`,
-    '--target-width': `${targetWidth}px`,
+    transition: `transform ${BOOK_FLIGHT_MS}ms ${BOOK_FLIGHT_EASE}, box-shadow ${BOOK_FLIGHT_MS}ms ${BOOK_FLIGHT_EASE}`,
     '--target-height': `${targetHeight}px`,
     '--detail-spine-width': `${Math.max(18, returnRect.width)}px`,
     '--detail-depth': `${Math.max(18, Math.min(34, volume.depth))}px`,
@@ -352,26 +365,27 @@ function VolumeDetail({
   } as CSSProperties;
 
   const overlayStyle = {
-    background: open ? 'rgba(27, 24, 20, .42)' : 'rgba(27, 24, 20, 0)',
-    transition: 'background 280ms ease',
+    background: open ? 'rgba(27, 24, 20, .36)' : 'rgba(27, 24, 20, 0)',
+    transition: 'background 260ms ease',
   } as CSSProperties;
 
   const coverStyle = {
-    opacity: open || returning ? 1 : 0,
-    transform: open || returning ? 'scale(1)' : 'scale(1.02)',
-    transition: open && !returning
-      ? 'opacity 260ms ease 120ms, transform 860ms cubic-bezier(.16, 1, .3, 1)'
-      : 'opacity 120ms ease, transform 860ms cubic-bezier(.16, 1, .3, 1)',
+    opacity: 1,
+    transform: 'scale(1)',
+    transition: 'none',
   } as CSSProperties;
 
   const panelStyle = {
+    opacity: open && !returning ? 1 : 0,
+    transform: open && !returning ? 'translateY(-50%)' : 'translateY(-46%)',
+    pointerEvents: open && !returning ? 'auto' : 'none',
     transition: open && !returning
-      ? 'opacity 340ms ease 280ms, transform 460ms cubic-bezier(.16, 1, .3, 1) 280ms'
-      : 'opacity 170ms ease, transform 230ms ease',
+      ? 'opacity 300ms ease 220ms, transform 420ms cubic-bezier(.22, 1, .36, 1) 220ms'
+      : 'opacity 150ms ease, transform 180ms ease',
   } as CSSProperties;
 
-  const frameClassName = [
-    styles.detailBookFrame,
+  const bookClassName = [
+    motionStyles.detailBookObject,
     bindingStyles.detailGeometry,
     bindingClass(volume),
     volume.jacket ? bindingStyles.jacketed : '',
@@ -391,19 +405,8 @@ function VolumeDetail({
       }}
     >
       <div
-        className={frameClassName}
-        style={detailStyle}
-        role={volume.demo ? undefined : 'button'}
-        tabIndex={volume.demo || returning ? undefined : 0}
-        aria-label={volume.demo ? undefined : `Open ${volume.title}`}
-        title={volume.demo ? undefined : 'Click the cover again to open the book'}
-        onClick={openEdition}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            openEdition();
-          }
-        }}
+        className={motionStyles.detailFlight}
+        style={flightStyle}
         onTransitionEnd={(event) => {
           if (
             returning
@@ -415,29 +418,51 @@ function VolumeDetail({
           }
         }}
       >
-        <div className={`${styles.detailCover} ${bindingStyles.detailCoverFace}`}>
-          {artUrl ? (
-            <img className={bindingStyles.coverArtwork} src={artUrl} alt="" style={coverStyle} />
-          ) : (
-            <div className={styles.detailFallback}>
-              <span>{volume.demo ? bindingLabel(volume) : volume.workType}</span>
-              <strong>{volume.title}</strong>
-              <small>{volume.creator}</small>
-            </div>
-          )}
-          <span className={bindingStyles.detailMaterialOverlay} />
-          <span className={bindingStyles.detailBoardEdge} />
-          <span className={bindingStyles.detailJacketPaper} />
-          <span className={bindingStyles.detailJacketSheen} />
+        <div
+          className={bookClassName}
+          style={bookStyle}
+          role={volume.demo ? undefined : 'button'}
+          tabIndex={volume.demo || returning ? undefined : 0}
+          aria-label={volume.demo ? undefined : `Open ${volume.title}`}
+          title={volume.demo ? undefined : 'Click the cover again to open the book'}
+          onClick={openEdition}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              openEdition();
+            }
+          }}
+        >
+          <div className={`${styles.detailCover} ${bindingStyles.detailCoverFace}`}>
+            {artUrl ? (
+              <img
+                className={bindingStyles.coverArtwork}
+                src={artUrl}
+                alt=""
+                style={coverStyle}
+                draggable={false}
+              />
+            ) : (
+              <div className={styles.detailFallback}>
+                <span>{volume.demo ? bindingLabel(volume) : volume.workType}</span>
+                <strong>{volume.title}</strong>
+                <small>{volume.creator}</small>
+              </div>
+            )}
+            <span className={bindingStyles.detailMaterialOverlay} />
+            <span className={bindingStyles.detailBoardEdge} />
+            <span className={bindingStyles.detailJacketPaper} />
+            <span className={bindingStyles.detailJacketSheen} />
+          </div>
+          <div className={bindingStyles.detailSpineFace}>
+            <span>{volume.title}</span>
+            <i aria-hidden="true" />
+          </div>
+          <div className={bindingStyles.detailPageFace} />
+          <div className={bindingStyles.detailTopEdge} />
+          <div className={bindingStyles.detailBottomEdge} />
+          <div className={bindingStyles.detailBackFace} />
         </div>
-        <div className={bindingStyles.detailSpineFace}>
-          <span>{volume.title}</span>
-          <i aria-hidden="true" />
-        </div>
-        <div className={bindingStyles.detailPageFace} />
-        <div className={bindingStyles.detailTopEdge} />
-        <div className={bindingStyles.detailBottomEdge} />
-        <div className={bindingStyles.detailBackFace} />
       </div>
 
       <div className={styles.detailPanel} style={panelStyle}>
@@ -482,7 +507,6 @@ function SpatialShelf({
     if (!rail) return;
 
     let frame = 0;
-
     const updateCurve = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
@@ -502,7 +526,6 @@ function SpatialShelf({
     updateCurve();
     rail.addEventListener('scroll', updateCurve, { passive: true });
     window.addEventListener('resize', updateCurve);
-
     return () => {
       cancelAnimationFrame(frame);
       rail.removeEventListener('scroll', updateCurve);
@@ -562,11 +585,16 @@ export default function SpatialLibrary({
   }), [library.books]);
 
   const handleSelect = useCallback((volume: LibraryVolume, source: HTMLElement) => {
+    const curveRotation = Number.parseFloat(
+      getComputedStyle(source).getPropertyValue('--curve-rotate'),
+    ) || 0;
+
     setHandoffVolumeId(null);
     setSelection({
       volume,
       sourceId: source.id,
       origin: rectSnapshot(source.getBoundingClientRect()),
+      sourceCurveRotation: curveRotation,
       viewport: {
         width: window.innerWidth,
         height: window.innerHeight,
