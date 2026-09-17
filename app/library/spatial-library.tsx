@@ -44,7 +44,13 @@ const dissolvedStageStyle: CSSProperties = {
 };
 
 const dissolvedRailStyle: CSSProperties = {
-  paddingInline: 'max(28px, 5vw)',
+  position: 'absolute',
+  inset: '0 0 28px 0',
+  minHeight: 0,
+  paddingTop: '132px',
+  paddingRight: 'max(28px, 5vw)',
+  paddingBottom: 0,
+  paddingLeft: 'max(28px, 5vw)',
   background: 'transparent',
 };
 
@@ -53,10 +59,6 @@ const dissolvedShelfStyle: CSSProperties = {
   border: 0,
   background: 'linear-gradient(180deg, #9a7853 0%, #76583a 100%)',
   boxShadow: '0 9px 24px rgba(31, 28, 24, .18), 0 -1px 0 rgba(31, 28, 24, .18)',
-};
-
-const dissolvedHintStyle: CSSProperties = {
-  marginTop: '14px',
 };
 
 function SpatialVolume({
@@ -125,13 +127,12 @@ function VolumeDetail({ selection, onDismiss }: { selection: SelectedVolume; onD
     : Math.max(34, (selection.viewport.height - targetHeight) / 2);
 
   const detailStyle = {
-    '--origin-top': `${selection.origin.top}px`,
-    '--origin-left': `${selection.origin.left}px`,
-    '--origin-width': `${selection.origin.width}px`,
-    '--origin-height': `${selection.origin.height}px`,
-    '--target-top': `${targetTop}px`,
-    '--target-left': `${targetLeft}px`,
-    '--target-width': `${targetWidth}px`,
+    top: open ? `${targetTop}px` : `${selection.origin.top}px`,
+    left: open ? `${targetLeft}px` : `${selection.origin.left}px`,
+    width: open ? `${targetWidth}px` : `${selection.origin.width}px`,
+    height: open ? `${targetHeight}px` : `${selection.origin.height}px`,
+    transform: open ? 'rotateY(0deg)' : 'rotateY(74deg)',
+    boxShadow: open ? '28px 38px 80px rgba(0,0,0,.35)' : '8px 18px 40px rgba(0,0,0,.08)',
     '--target-height': `${targetHeight}px`,
     '--spine-color': volume.spineColor,
     '--band-color': volume.bandColor,
@@ -140,7 +141,7 @@ function VolumeDetail({ selection, onDismiss }: { selection: SelectedVolume; onD
 
   const dismiss = () => {
     setOpen(false);
-    closeTimerRef.current = setTimeout(onDismiss, 760);
+    closeTimerRef.current = setTimeout(onDismiss, 940);
   };
 
   useEffect(() => {
@@ -271,9 +272,6 @@ function SpatialShelf({ shelf, books, onSelect, dissolved = false }: SpatialShel
         </div>
         <div className={styles.shelfBoard} style={dissolved ? dissolvedShelfStyle : undefined} aria-hidden="true" />
       </div>
-      <p className={styles.hint} style={dissolved ? dissolvedHintStyle : undefined}>
-        Select a spine to pull the work forward. Open the edition when you are ready to read.
-      </p>
     </section>
   );
 }
