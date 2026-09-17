@@ -1,33 +1,33 @@
 # Proposal Workspace
 
-This directory is a non-authoritative design workspace attached to a draft EPP.
+This directory is a non-authoritative mockup-preparation workspace attached to a draft EPP.
 
-It exists so WNPH can repeatedly develop a real physical book presentation without putting speculative facts into the Edition Presentation Package itself.
+It exists so WNPH can develop realistic physical-book presentation assets without putting speculative facts into the Edition Presentation Package itself.
 
 ## Rule
 
-> A proposal is not publication truth.
+> A proposal is not publication truth, and mockup preparation does not redesign approved cover art.
 
-Files here may contain candidate trim sizes, materials, cover directions, mockups, rendering tests, or alternative designs. Consumers must not read this directory. The public EPP index must ignore it.
+When an approved/recovered cover image already exists, it is the graphic source of truth for the mockup workflow. Files here may contain candidate physical specifications, template tests, render settings, or mockup reviews. Consumers must not read this directory. The public EPP index must ignore it.
 
 ## Repeatable workflow
 
 1. Start from the owning Manifestation and current publication Expression.
-2. Record known physical facts; leave unknowns unresolved.
-3. Build one or more cover briefs from the Work, source evidence, and WNPH design intent.
-4. Create candidate front/back/spine or full-wrap artwork.
-5. Apply candidate artwork to the correct physical mockup construction.
-6. Review the mockup as a manufactured object: cover stock, page block, seams, spine, edges, shadows, and print behavior must remain visible.
-7. Approve a physical specification and cover direction explicitly.
-8. Promote only the approved values/assets into `manifest.json` and the package's authoritative artwork/presentation paths.
+2. Resolve the approved/recovered cover-art asset through the governed publication/media seam.
+3. Record known physical facts; leave unknowns unresolved.
+4. Choose the correct versioned physical template family.
+5. Assemble a mockup generation job that references the approved image and approved physical facts.
+6. Generate shelf/front/three-quarter/detail presentation assets.
+7. Review the mockup as a manufactured object: cover stock, page block, seams, spine, edges, shadows, and print behavior must remain visible.
+8. Promote only validated generated assets and approved physical values into `manifest.json`.
 9. Validate the EPP.
 10. Seal it only after the package satisfies the approval contract.
 
 ## Mockup requirement
 
-Every candidate cover should be reviewed in at least these views before promotion:
+Every physical-book package should be reviewed in at least these views before promotion:
 
-- flat front cover;
+- front-facing cover presentation;
 - spine/shelf view;
 - realistic three-quarter physical mockup;
 - selected/detail mockup at approximately the website's intended display size.
@@ -36,18 +36,8 @@ For a paperback, the cover is a flexible printed wrapper around a separate page 
 
 ## Approval boundary
 
-Approval of artwork and approval of a website deployment are separate operations. An approved EPP may exist without any website deployment.
+Approval of artwork, approval of physical specification, approval of generated presentation assets, and approval of a website deployment are separate operations. An approved EPP may exist without any website deployment.
 
-## Current v1 study
+## Current v1 task
 
-The first concrete study now lives in this directory:
-
-- `cover-concept-v1.md` — design rationale and palette;
-- `physical-spec-v1.md` — proposed trim/material/geometry direction;
-- `front-cover-v1.svg` — flat cover proposal;
-- `spine-v1.svg` — spine design-language study at deliberately exaggerated width;
-- `three-quarter-v1.svg` — physical paperback mockup;
-- `detail-v1.svg` — website selected-book study;
-- `design-review-v1.md` — review findings and promotion decision.
-
-These assets remain proposal-only. They are not referenced by `manifest.json`, do not enter the public EPP index, and do not authorize a website deployment.
+For *The Wish Fairy and Dewy Dear*, use `mockup-brief-v1.md`. The task is to place the already-established recovered image onto a realistic paperback template—not to create a new cover design.

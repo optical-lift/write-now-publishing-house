@@ -35,7 +35,7 @@ A presentation-complete edition has:
 
 - an explicit edition identity;
 - an approved physical specification;
-- an approved cover/artwork package;
+- approved cover/artwork inputs;
 - a versioned presentation manifest;
 - the required presentation assets for its construction type;
 - provenance from each presentation asset back to the edition and source artwork;
@@ -69,16 +69,36 @@ EPS does **not** own:
 
 ```text
 Edition identified
-  -> Physical specification approved
-  -> Cover/artwork package approved
-  -> Presentation package assembled
-  -> Manifest validated
-  -> Package version sealed
-  -> Attached to edition/release
-  -> Consumed by public surfaces
+  -> approved cover/artwork resolved
+  -> physical specification approved
+  -> mockup generation job assembled
+  -> presentation assets generated
+  -> manifest validated
+  -> package version sealed
+  -> attached to edition/release
+  -> consumed by public surfaces
 ```
 
-See [pipeline.md](./pipeline.md) for lifecycle and state-transition rules.
+Approved artwork and physical specification are separate authorities. Mockup generation combines them but does not redesign either one.
+
+See [pipeline.md](./pipeline.md) for EPP lifecycle/state-transition rules and [mockup-generation-pipeline.md](./mockup-generation-pipeline.md) for the derived physical-book rendering workflow.
+
+## Mockup generation
+
+Realistic book mockups are derived presentation assets, analogous to placing approved cover art into a production Photoshop mockup.
+
+```text
+approved/recovered cover image
+  + approved physical construction
+  + versioned mockup template
+  -> shelf spine / front / three-quarter / detail assets
+  -> EPP
+  -> website shelf
+```
+
+The mockup layer supplies geometry, page block, materials, seams, edges, perspective, lighting, and shadow. It does not author a new cover design.
+
+The governing contract is [mockup-generation-contract.md](./mockup-generation-contract.md). Generation jobs are described by [`mockup-generation-job.schema.json`](./mockup-generation-job.schema.json).
 
 ## Contract surface
 
@@ -102,7 +122,7 @@ Homepage shelf
   -> shelfSpine
 
 Selected-book detail
-  -> detailMockup or frontCover + physical construction data
+  -> detailMockup or threeQuarterMockup
 
 Catalogue record
   -> frontCover
@@ -115,13 +135,15 @@ Consumers must follow [consumer-contract.md](./consumer-contract.md).
 
 ## Versioning
 
-Presentation packages are immutable once sealed for a release. A revised cover, changed binding, corrected spine width, or replacement mockup creates a new package version rather than silently rewriting a sealed package.
+Presentation packages are immutable once sealed for a release. A revised cover, changed binding, corrected spine width, or replacement mockup created from materially changed production inputs creates a new package version rather than silently rewriting a sealed package.
 
 A Work may have many Editions. An Edition may have successive presentation-package versions, but exactly one package version may be designated current for a given released edition at a time.
 
 ## Unknown state
 
 Unknown is a first-class state. If an edition lacks authoritative physical information, EPS must not manufacture it. Consumers must render a neutral fallback or omit physical representation until an authorized package exists.
+
+Missing presentation output does not authorize new artwork. If approved/recovered cover art exists, it remains the graphic source of truth even when the mockup job is incomplete.
 
 ## Current prototype relationship
 
@@ -131,8 +153,9 @@ The long-term shelf direction is:
 
 ```text
 canonical edition
-  -> current EPP
-  -> real spine / mockup assets
+  -> approved/recovered artwork
+  -> current EPP physical spec
+  -> generated real mockup assets
   -> lightweight shelf interaction
 ```
 
@@ -140,16 +163,20 @@ not:
 
 ```text
 canonical edition
-  -> frontend invents book
+  -> frontend invents book or cover
 ```
 
 ## Acceptance test
 
 > A release is presentation-complete when another application can render a recognizable physical representation of that edition using only its Edition Presentation Package, without inventing bibliographic, material, binding, artwork, or dimensional facts.
 
+A mockup pipeline additionally passes when the approved cover image remains the same graphic identity while the derived output convincingly reads as the declared paper/cloth/cardboard construction.
+
 ## Architecture decisions
 
 - [ADR-0001: Edition presentation is release-derived](../adr/0001-edition-presentation-is-release-derived.md)
+- [ADR-0002: EPP edition identity maps to WNPH Manifestation](../adr/0002-epp-edition-identity-maps-to-wnph-manifestation.md)
+- [ADR-0003: Mockups are derived from approved artwork and physical templates](../adr/0003-mockups-are-derived-from-approved-artwork.md)
 
 ## Examples
 
