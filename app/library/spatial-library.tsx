@@ -10,12 +10,14 @@ import styles from './spatial-library.module.css';
 type SpatialLibraryProps = {
   library: WnphPublicLibrary;
   showDirectory?: boolean;
+  presentation?: 'default' | 'dissolved';
 };
 
 type SpatialShelfProps = {
   shelf: WnphPublicLibraryShelf;
   books: WnphPublicLibraryBook[];
   onSelect: (volume: LibraryVolume, origin: DOMRect) => void;
+  dissolved?: boolean;
 };
 
 type SelectedVolume = {
@@ -30,6 +32,31 @@ type SelectedVolume = {
     width: number;
     height: number;
   };
+};
+
+const dissolvedStageStyle: CSSProperties = {
+  width: '100vw',
+  marginLeft: 'calc(50% - 50vw)',
+  overflow: 'visible',
+  border: 0,
+  background: 'transparent',
+  boxShadow: 'none',
+};
+
+const dissolvedRailStyle: CSSProperties = {
+  paddingInline: 'max(28px, 5vw)',
+  background: 'transparent',
+};
+
+const dissolvedShelfStyle: CSSProperties = {
+  height: '9px',
+  border: 0,
+  background: 'linear-gradient(180deg, #9a7853 0%, #76583a 100%)',
+  boxShadow: '0 9px 24px rgba(31, 28, 24, .18), 0 -1px 0 rgba(31, 28, 24, .18)',
+};
+
+const dissolvedHintStyle: CSSProperties = {
+  marginTop: '14px',
 };
 
 function SpatialVolume({
@@ -180,7 +207,7 @@ function VolumeDetail({ selection, onDismiss }: { selection: SelectedVolume; onD
   );
 }
 
-function SpatialShelf({ shelf, books, onSelect }: SpatialShelfProps) {
+function SpatialShelf({ shelf, books, onSelect, dissolved = false }: SpatialShelfProps) {
   const railRef = useRef<HTMLDivElement>(null);
   const volumes = useMemo(() => books.map(projectLibraryBookToVolume), [books]);
   const isShortShelf = volumes.length <= 4;
@@ -219,32 +246,45 @@ function SpatialShelf({ shelf, books, onSelect }: SpatialShelfProps) {
   }, [volumes.length]);
 
   return (
-    <section className={styles.spatialShelf} aria-labelledby={`shelf-${shelf.shelf_key}`}>
-      <header className={styles.shelfHeading}>
-        <div>
-          <div className={styles.shelfEyebrow}>Collection</div>
-          <h2 id={`shelf-${shelf.shelf_key}`}>{shelf.title}</h2>
-        </div>
-        <span className={styles.shelfCount}>{books.length} {books.length === 1 ? 'work' : 'works'}</span>
-      </header>
+    <section className={styles.spatialShelf} aria-labelledby={dissolved ? undefined : `shelf-${shelf.shelf_key}`}>
+      {!dissolved ? (
+        <header className={styles.shelfHeading}>
+          <div>
+            <div className={styles.shelfEyebrow}>Collection</div>
+            <h2 id={`shelf-${shelf.shelf_key}`}>{shelf.title}</h2>
+          </div>
+          <span className={styles.shelfCount}>{books.length} {books.length === 1 ? 'work' : 'works'}</span>
+        </header>
+      ) : null}
 
-      <div className={styles.stage}>
-        <div className={`${styles.rail} ${isShortShelf ? styles.shortRail : ''}`} ref={railRef}>
+      <div className={styles.stage} style={dissolved ? dissolvedStageStyle : undefined}>
+        <div
+          className={`${styles.rail} ${isShortShelf ? styles.shortRail : ''}`}
+          ref={railRef}
+          style={dissolved ? dissolvedRailStyle : undefined}
+        >
           {!isShortShelf ? <div className={styles.railSpacer} aria-hidden="true" /> : null}
           {volumes.map((volume) => (
             <SpatialVolume volume={volume} onSelect={onSelect} key={volume.publicSlug} />
           ))}
           {!isShortShelf ? <div className={styles.railSpacer} aria-hidden="true" /> : null}
         </div>
-        <div className={styles.shelfBoard} aria-hidden="true" />
+        <div className={styles.shelfBoard} style={dissolved ? dissolvedShelfStyle : undefined} aria-hidden="true" />
       </div>
-      <p className={styles.hint}>Select a spine to pull the work forward. Open the edition when you are ready to read.</p>
+      <p className={styles.hint} style={dissolved ? dissolvedHintStyle : undefined}>
+        Select a spine to pull the work forward. Open the edition when you are ready to read.
+      </p>
     </section>
   );
 }
 
-export default function SpatialLibrary({ library, showDirectory = true }: SpatialLibraryProps) {
+export default function SpatialLibrary({
+  library,
+  showDirectory = true,
+  presentation = 'default',
+}: SpatialLibraryProps) {
   const [selection, setSelection] = useState<SelectedVolume | null>(null);
+  const dissolved = presentation === 'dissolved';
 
   const allWorksShelf = useMemo<WnphPublicLibraryShelf>(() => ({
     shelf_key: 'all-works',
@@ -271,7 +311,12 @@ export default function SpatialLibrary({ library, showDirectory = true }: Spatia
   return (
     <>
       <div className={`${styles.libraryScene} ${selection ? styles.sceneMuted : ''}`}>
-        <SpatialShelf shelf={allWorksShelf} books={library.books} onSelect={handleSelect} />
+        <SpatialShelf
+          shelf={allWorksShelf}
+          books={library.books}
+          onSelect={handleSelect}
+          dissolved={dissolved}
+        />
 
         {showDirectory && library.shelves.length > 0 ? (
           <nav className={styles.shelfDirectory} aria-label="Browse library shelves">
