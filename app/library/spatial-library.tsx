@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { WnphPublicLibrary } from '../../lib/wnph-public';
 import {
@@ -77,18 +77,61 @@ function Tooltip({ volume }: { volume: LibraryVolume }) {
   );
 }
 
-function ShelfVolume({ volume }: { volume: LibraryVolume }) {
+function shelfPose(index: number, activeIndex: number | null, restLean: number) {
+  if (activeIndex === null) {
+    return { lean: restLean, shift: 0, depth: 1 };
+  }
+
+  const delta = index - activeIndex;
+  if (delta === 0) {
+    return { lean: 0, shift: 0, depth: 30 };
+  }
+
+  const direction = delta < 0 ? -1 : 1;
+  const distance = Math.abs(delta);
+  const leanMagnitude = Math.max(1.15, 5.25 * Math.exp(-0.42 * (distance - 1)));
+  const shiftMagnitude = Math.min(11, 3.5 + (distance - 1) * 2.6);
+
+  return {
+    lean: direction * leanMagnitude,
+    shift: direction * shiftMagnitude,
+    depth: Math.max(2, 20 - distance),
+  };
+}
+
+function ShelfVolume({
+  volume,
+  index,
+  activeIndex,
+  onActivate,
+}: {
+  volume: LibraryVolume;
+  index: number;
+  activeIndex: number | null;
+  onActivate: (index: number | null) => void;
+}) {
+  const pose = shelfPose(index, activeIndex, volume.lean);
+  const active = activeIndex === index;
   const slotStyle = {
     '--book-width': `${volume.width}px`,
     '--book-height': `${volume.height}px`,
+    '--pose-lean': `${pose.lean.toFixed(2)}deg`,
+    '--pose-shift': `${pose.shift.toFixed(2)}px`,
+    zIndex: pose.depth,
   } as CSSProperties;
+
+  const slotClassName = [
+    volume.demo ? shelfStyles.demoSlot : shelfStyles.bookSlot,
+    active ? shelfStyles.activeSlot : '',
+  ].filter(Boolean).join(' ');
 
   if (volume.demo) {
     return (
       <div
-        className={shelfStyles.demoSlot}
+        className={slotClassName}
         style={slotStyle}
         aria-label={`${volume.title} by ${volume.creator}, temporary shelf study`}
+        onMouseEnter={() => onActivate(index)}
       >
         <Tooltip volume={volume} />
         <SpineVisual volume={volume} />
@@ -98,10 +141,13 @@ function ShelfVolume({ volume }: { volume: LibraryVolume }) {
 
   return (
     <Link
-      className={shelfStyles.bookSlot}
+      className={slotClassName}
       style={slotStyle}
       href={`/books/${volume.publicSlug}`}
       aria-label={`Open ${volume.title} by ${volume.creator}`}
+      onMouseEnter={() => onActivate(index)}
+      onFocus={() => onActivate(index)}
+      onBlur={() => onActivate(null)}
     >
       <Tooltip volume={volume} />
       <SpineVisual volume={volume} />
@@ -114,6 +160,7 @@ export default function SpatialLibrary({
   showDirectory = true,
   presentation = 'default',
 }: SpatialLibraryProps) {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const dissolved = presentation === 'dissolved';
   const volumes = useMemo(
     () => [
@@ -141,9 +188,21 @@ export default function SpatialLibrary({
         className={shelfStyles.stage}
         style={dissolved ? { width: '100vw', marginLeft: 'calc(50% - 50vw)' } : undefined}
       >
-        <div className={shelfStyles.rail}>
-          {volumes.map((volume) => (
-            <ShelfVolume key={volume.publicSlug} volume={volume} />
+        <div
+          className={[
+            shelfStyles.rail,
+            activeIndex !== null ? shelfStyles.shelfActive : '',
+          ].filter(Boolean).join(' ')}
+          onMouseLeave={() => setActiveIndex(null)}
+        >
+          {volumes.map((volume, index) => (
+            <ShelfVolume
+              key={volume.publicSlug}
+              volume={volume}
+              index={index}
+              activeIndex={activeIndex}
+              onActivate={setActiveIndex}
+            />
           ))}
         </div>
         <div className={shelfStyles.shelfBoard} aria-hidden="true" />
