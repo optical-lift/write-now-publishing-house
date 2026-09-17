@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useRef } from 'react';
-import type { CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { CSSProperties, MouseEvent } from 'react';
 import type { WnphPublicLibrary, WnphPublicLibraryBook, WnphPublicLibraryShelf } from '../../lib/wnph-public';
 import { projectLibraryBookToVolume, type LibraryVolume } from '../../lib/library-scene';
 import styles from './spatial-library.module.css';
@@ -14,9 +14,30 @@ type SpatialLibraryProps = {
 type SpatialShelfProps = {
   shelf: WnphPublicLibraryShelf;
   books: WnphPublicLibraryBook[];
+  onSelect: (volume: LibraryVolume, origin: DOMRect) => void;
 };
 
-function SpatialVolume({ volume }: { volume: LibraryVolume }) {
+type SelectedVolume = {
+  volume: LibraryVolume;
+  origin: {
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+  };
+  viewport: {
+    width: number;
+    height: number;
+  };
+};
+
+function SpatialVolume({
+  volume,
+  onSelect,
+}: {
+  volume: LibraryVolume;
+  onSelect: (volume: LibraryVolume, origin: DOMRect) => void;
+}) {
   const style = {
     '--book-width': `${volume.width}px`,
     '--book-height': `${volume.height}px`,
@@ -27,13 +48,20 @@ function SpatialVolume({ volume }: { volume: LibraryVolume }) {
     '--book-ink': volume.inkColor,
   } as CSSProperties;
 
+  const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    onSelect(volume, event.currentTarget.getBoundingClientRect());
+  };
+
   return (
     <Link
       className={styles.volumeHit}
       href={`/books/${volume.publicSlug}`}
-      aria-label={`Read ${volume.title} by ${volume.creator}`}
+      aria-label={`Open ${volume.title} by ${volume.creator}`}
       data-volume
       style={style}
+      onClick={handleClick}
     >
       <span className={styles.volumeCard} aria-hidden="true">
         <span className={styles.cardKicker}>{volume.workType}</span>
@@ -52,9 +80,104 @@ function SpatialVolume({ volume }: { volume: LibraryVolume }) {
   );
 }
 
-function SpatialShelf({ shelf, books }: SpatialShelfProps) {
+function VolumeDetail({ selection, onDismiss }: { selection: SelectedVolume; onDismiss: () => void }) {
+  const [open, setOpen] = useState(false);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const volume = selection.volume;
+
+  const targetHeight = Math.max(300, Math.min(520, selection.viewport.height - 92));
+  const targetWidth = Math.round(targetHeight * 0.68);
+  const targetCenterX = selection.viewport.width > 860 ? selection.viewport.width * 0.36 : selection.viewport.width / 2;
+  const targetLeft = Math.max(24, targetCenterX - targetWidth / 2);
+  const targetTop = Math.max(34, (selection.viewport.height - targetHeight) / 2);
+
+  const detailStyle = {
+    '--origin-top': `${selection.origin.top}px`,
+    '--origin-left': `${selection.origin.left}px`,
+    '--origin-width': `${selection.origin.width}px`,
+    '--origin-height': `${selection.origin.height}px`,
+    '--target-top': `${targetTop}px`,
+    '--target-left': `${targetLeft}px`,
+    '--target-width': `${targetWidth}px`,
+    '--target-height': `${targetHeight}px`,
+    '--spine-color': volume.spineColor,
+    '--band-color': volume.bandColor,
+    '--book-ink': volume.inkColor,
+  } as CSSProperties;
+
+  const dismiss = () => {
+    setOpen(false);
+    closeTimerRef.current = setTimeout(onDismiss, 760);
+  };
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setOpen(true));
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') dismiss();
+    };
+
+    window.addEventListener('keydown', handleKey);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+      window.removeEventListener('keydown', handleKey);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
+
+  return (
+    <div
+      className={styles.detailOverlay}
+      data-open={open ? 'true' : 'false'}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${volume.title} by ${volume.creator}`}
+      onMouseDown={(event) => {
+        if (event.currentTarget === event.target) dismiss();
+      }}
+    >
+      <div className={styles.detailBookFrame} style={detailStyle} aria-hidden="true">
+        <div className={styles.detailCover}>
+          {volume.representativeImageUrl ? (
+            <img src={volume.representativeImageUrl} alt="" />
+          ) : (
+            <div className={styles.detailFallback}>
+              <span>{volume.workType}</span>
+              <strong>{volume.title}</strong>
+              <small>{volume.creator}</small>
+            </div>
+          )}
+        </div>
+        <div className={styles.detailSpine}>
+          <span>{volume.title}</span>
+        </div>
+      </div>
+
+      <div className={styles.detailPanel}>
+        <button className={styles.detailClose} type="button" onClick={dismiss} aria-label="Return book to shelf">×</button>
+        <div className={styles.detailKicker}>{volume.workType}</div>
+        <h2>{volume.title}</h2>
+        <p className={styles.detailCreator}>{volume.creator}</p>
+        <p className={styles.detailFacts}>
+          {volume.chapterCount} chapters · {volume.mediaCount} illustrations
+        </p>
+        <Link className={styles.readButton} href={`/books/${volume.publicSlug}`}>
+          Read this edition →
+        </Link>
+        <button className={styles.returnButton} type="button" onClick={dismiss}>Return to shelf</button>
+      </div>
+    </div>
+  );
+}
+
+function SpatialShelf({ shelf, books, onSelect }: SpatialShelfProps) {
   const railRef = useRef<HTMLDivElement>(null);
   const volumes = useMemo(() => books.map(projectLibraryBookToVolume), [books]);
+  const isShortShelf = volumes.length <= 4;
 
   useEffect(() => {
     const rail = railRef.current;
@@ -93,41 +216,76 @@ function SpatialShelf({ shelf, books }: SpatialShelfProps) {
     <section className={styles.spatialShelf} aria-labelledby={`shelf-${shelf.shelf_key}`}>
       <header className={styles.shelfHeading}>
         <div>
-          <div className={styles.shelfEyebrow}>Shelf</div>
+          <div className={styles.shelfEyebrow}>Collection</div>
           <h2 id={`shelf-${shelf.shelf_key}`}>{shelf.title}</h2>
         </div>
-        <Link href={`/library/${shelf.shelf_key}`}>Catalogue · {books.length} {books.length === 1 ? 'work' : 'works'} →</Link>
+        <span className={styles.shelfCount}>{books.length} {books.length === 1 ? 'work' : 'works'}</span>
       </header>
 
       <div className={styles.stage}>
-        <div className={styles.rail} ref={railRef}>
-          <div className={styles.railSpacer} aria-hidden="true" />
-          {volumes.map((volume) => <SpatialVolume volume={volume} key={volume.publicSlug} />)}
-          <div className={styles.railSpacer} aria-hidden="true" />
+        <div className={`${styles.rail} ${isShortShelf ? styles.shortRail : ''}`} ref={railRef}>
+          {!isShortShelf ? <div className={styles.railSpacer} aria-hidden="true" /> : null}
+          {volumes.map((volume) => (
+            <SpatialVolume volume={volume} onSelect={onSelect} key={volume.publicSlug} />
+          ))}
+          {!isShortShelf ? <div className={styles.railSpacer} aria-hidden="true" /> : null}
         </div>
         <div className={styles.shelfBoard} aria-hidden="true" />
       </div>
-      <p className={styles.hint}>Scroll the shelf. Select a spine to enter the existing reader.</p>
+      <p className={styles.hint}>Select a spine to pull the work forward. Open the edition when you are ready to read.</p>
     </section>
   );
 }
 
 export default function SpatialLibrary({ library }: SpatialLibraryProps) {
-  const booksBySlug = useMemo(
-    () => new Map(library.books.map((book) => [book.public_slug, book])),
-    [library.books],
-  );
+  const [selection, setSelection] = useState<SelectedVolume | null>(null);
+
+  const allWorksShelf = useMemo<WnphPublicLibraryShelf>(() => ({
+    shelf_key: 'all-works',
+    title: 'All works',
+    book_slugs: library.books.map((book) => book.public_slug),
+  }), [library.books]);
+
+  const handleSelect = (volume: LibraryVolume, origin: DOMRect) => {
+    setSelection({
+      volume,
+      origin: {
+        top: origin.top,
+        left: origin.left,
+        width: origin.width,
+        height: origin.height,
+      },
+      viewport: {
+        width: window.innerWidth,
+        height: window.innerHeight,
+      },
+    });
+  };
 
   return (
-    <div className={styles.libraryScene}>
-      {library.shelves.map((shelf) => {
-        const books = shelf.book_slugs
-          .map((slug) => booksBySlug.get(slug))
-          .filter((book): book is WnphPublicLibraryBook => Boolean(book));
+    <>
+      <div className={`${styles.libraryScene} ${selection ? styles.sceneMuted : ''}`}>
+        <SpatialShelf shelf={allWorksShelf} books={library.books} onSelect={handleSelect} />
 
-        if (books.length === 0) return null;
-        return <SpatialShelf shelf={shelf} books={books} key={shelf.shelf_key} />;
-      })}
-    </div>
+        {library.shelves.length > 0 ? (
+          <nav className={styles.shelfDirectory} aria-label="Browse library shelves">
+            <div>
+              <div className={styles.shelfEyebrow}>Browse by shelf</div>
+              <p>These are the catalogue's existing shelf groupings. They do not create duplicate works.</p>
+            </div>
+            <div className={styles.shelfLinks}>
+              {library.shelves.map((shelf) => (
+                <Link href={`/library/${shelf.shelf_key}`} key={shelf.shelf_key}>
+                  <span>{shelf.title}</span>
+                  <small>{shelf.book_slugs.length}</small>
+                </Link>
+              ))}
+            </div>
+          </nav>
+        ) : null}
+      </div>
+
+      {selection ? <VolumeDetail selection={selection} onDismiss={() => setSelection(null)} /> : null}
+    </>
   );
 }
