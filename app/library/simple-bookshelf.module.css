@@ -62,16 +62,35 @@
   color: var(--book-ink);
   transform: rotate(var(--book-lean));
   transform-origin: 50% 100%;
-  transition: filter 120ms ease, box-shadow 120ms ease;
+  transition:
+    filter 190ms cubic-bezier(.2,.7,.2,1),
+    opacity 190ms cubic-bezier(.2,.7,.2,1),
+    box-shadow 190ms ease;
+}
+
+.rail:has(.bookSlot:hover) .bookSlot:not(:hover) .spine,
+.rail:has(.demoSlot:hover) .bookSlot .spine,
+.rail:has(.bookSlot:focus-visible) .bookSlot:not(:focus-visible) .spine {
+  filter: blur(.35px) brightness(.965) saturate(.88) contrast(.94);
+  opacity: .86;
+}
+
+.rail:has(.bookSlot:hover) .demoSlot:not(:hover) .spine,
+.rail:has(.demoSlot:hover) .demoSlot:not(:hover) .spine,
+.rail:has(.bookSlot:focus-visible) .demoSlot .spine {
+  filter: blur(.35px) brightness(.965) saturate(.88) contrast(.94);
+  opacity: .86;
 }
 
 .bookSlot:hover .spine,
-.bookSlot:focus-visible .spine {
-  filter: brightness(1.035) saturate(1.025);
+.bookSlot:focus-visible .spine,
+.demoSlot:hover .spine {
+  filter: brightness(1.02) saturate(1.055) contrast(1.075);
+  opacity: 1;
   box-shadow:
-    inset 2px 0 0 rgba(255,255,255,.1),
+    inset 2px 0 0 rgba(255,255,255,.11),
     inset -2px 0 0 rgba(0,0,0,.1),
-    3px 7px 12px rgba(31, 28, 24, .17);
+    2px 5px 10px rgba(31, 28, 24, .15);
 }
 
 .bookSlot:focus-visible .spine {
