@@ -115,11 +115,11 @@ function closedBookTransform(
   curveRotation: number | null,
 ) {
   if (pose === 'detail') return 'translate3d(0, 0, 0) rotateY(0deg) rotateZ(0deg)';
-  if (pose === 'hover') return 'translate3d(0, -4px, 24px) rotateY(78deg) rotateZ(0deg)';
+  if (pose === 'hover') return 'translate3d(0, -4px, 24px) rotateY(-78deg) rotateZ(0deg)';
 
   const shelfYaw = curveRotation === null
-    ? 'calc(90deg + var(--curve-rotate, 0deg))'
-    : `${90 + curveRotation}deg`;
+    ? 'calc(-90deg + var(--curve-rotate, 0deg))'
+    : `${-90 + curveRotation}deg`;
 
   return `translate3d(0, 0, 0) rotateY(${shelfYaw}) rotateZ(${volume.lean}deg)`;
 }
