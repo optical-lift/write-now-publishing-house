@@ -32,6 +32,7 @@ type SpatialShelfProps = {
   dissolved?: boolean;
   demoVolumes?: LibraryVolume[];
   selectedVolumeId?: string | null;
+  handoffVolumeId?: string | null;
 };
 
 type SelectedVolume = {
@@ -119,10 +120,12 @@ function SpatialVolume({
   volume,
   onSelect,
   selected,
+  handoff,
 }: {
   volume: LibraryVolume;
   onSelect: (volume: LibraryVolume, source: HTMLElement) => void;
   selected: boolean;
+  handoff: boolean;
 }) {
   const style = {
     '--book-width': `${volume.width}px`,
@@ -139,7 +142,7 @@ function SpatialVolume({
     bindingClass(volume),
     volume.jacket ? bindingStyles.jacketed : '',
     volume.demo ? bindingStyles.demoButton : '',
-    selected ? bindingStyles.sourceHidden : '',
+    selected && !handoff ? bindingStyles.sourceHidden : '',
   ].filter(Boolean).join(' ');
 
   const content = (
@@ -199,11 +202,21 @@ function SpatialVolume({
   );
 }
 
-function VolumeDetail({ selection, onDismiss }: { selection: SelectedVolume; onDismiss: () => void }) {
+function VolumeDetail({
+  selection,
+  onReturnLanded,
+  onDismiss,
+}: {
+  selection: SelectedVolume;
+  onReturnLanded: (volumeId: string) => void;
+  onDismiss: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const [returnRect, setReturnRect] = useState<RectSnapshot>(selection.origin);
   const [returning, setReturning] = useState(false);
+  const [handoff, setHandoff] = useState(false);
   const returningRef = useRef(false);
+  const handoffRef = useRef(false);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const volume = selection.volume;
   const compact = selection.viewport.width <= 860;
@@ -224,21 +237,43 @@ function VolumeDetail({ selection, onDismiss }: { selection: SelectedVolume; onD
     return rectSnapshot(source.getBoundingClientRect());
   }, [selection.origin, selection.sourceId]);
 
+  const beginHandoff = useCallback(() => {
+    if (handoffRef.current) return;
+    handoffRef.current = true;
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    onReturnLanded(volume.publicSlug);
+    setHandoff(true);
+    closeTimerRef.current = setTimeout(onDismiss, 170);
+  }, [onDismiss, onReturnLanded, volume.publicSlug]);
+
   const dismiss = useCallback(() => {
     if (returningRef.current) return;
     returningRef.current = true;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      onReturnLanded(volume.publicSlug);
+      onDismiss();
+      return;
+    }
+
     const liveRect = measureSource();
-    setReturning(true);
     setReturnRect(liveRect);
+    setReturning(true);
 
     requestAnimationFrame(() => {
       setOpen(false);
-      closeTimerRef.current = setTimeout(onDismiss, 980);
     });
-  }, [measureSource, onDismiss]);
+
+    // Transition completion is the primary handoff signal. This timeout is only
+    // a guard for browsers that suppress transitionend during interruption.
+    closeTimerRef.current = setTimeout(beginHandoff, 1050);
+  }, [beginHandoff, measureSource, onDismiss, onReturnLanded, volume.publicSlug]);
 
   useEffect(() => {
-    const frame = requestAnimationFrame(() => setOpen(true));
+    let secondFrame = 0;
+    const firstFrame = requestAnimationFrame(() => {
+      secondFrame = requestAnimationFrame(() => setOpen(true));
+    });
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
@@ -249,29 +284,59 @@ function VolumeDetail({ selection, onDismiss }: { selection: SelectedVolume; onD
     window.addEventListener('keydown', handleKey);
 
     return () => {
-      cancelAnimationFrame(frame);
+      cancelAnimationFrame(firstFrame);
+      cancelAnimationFrame(secondFrame);
       if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
       window.removeEventListener('keydown', handleKey);
       document.body.style.overflow = previousOverflow;
     };
   }, [dismiss]);
 
-  const closedLeft = returnRect.left + returnRect.width;
+  const returnScaleY = Math.max(0.05, returnRect.height / targetHeight);
+  const returnTranslateX = returnRect.left - targetLeft;
+  const returnTranslateY = returnRect.top - targetTop;
+  const closedTransform = `translate3d(${returnTranslateX}px, ${returnTranslateY}px, 0) scaleY(${returnScaleY}) rotateY(89deg) rotateZ(${volume.lean}deg)`;
   const artUrl = volume.coverArtUrl ?? volume.representativeImageUrl;
 
   const detailStyle = {
-    top: open ? `${targetTop}px` : `${returnRect.top}px`,
-    left: open ? `${targetLeft}px` : `${closedLeft}px`,
-    width: open ? `${targetWidth}px` : `${returnRect.width}px`,
-    height: open ? `${targetHeight}px` : `${returnRect.height}px`,
-    transform: open ? 'rotateY(0deg)' : 'rotateY(90deg)',
+    top: `${targetTop}px`,
+    left: `${targetLeft}px`,
+    width: `${targetWidth}px`,
+    height: `${targetHeight}px`,
+    transform: open ? 'translate3d(0, 0, 0) scaleY(1) rotateY(0deg) rotateZ(0deg)' : closedTransform,
+    transformOrigin: 'left top',
     boxShadow: open ? '28px 38px 80px rgba(0,0,0,.35)' : '8px 18px 40px rgba(0,0,0,.08)',
+    opacity: handoff ? 0 : 1,
+    transition: 'transform 860ms cubic-bezier(.16, 1, .3, 1), box-shadow 860ms cubic-bezier(.16, 1, .3, 1), opacity 140ms ease',
+    willChange: 'transform, box-shadow, opacity',
+    '--target-top': `${targetTop}px`,
+    '--target-left': `${targetLeft}px`,
+    '--target-width': `${targetWidth}px`,
     '--target-height': `${targetHeight}px`,
     '--detail-spine-width': `${Math.max(18, returnRect.width)}px`,
     '--detail-depth': `${Math.max(18, Math.min(34, volume.depth))}px`,
     '--spine-color': volume.spineColor,
     '--band-color': volume.bandColor,
     '--book-ink': volume.inkColor,
+  } as CSSProperties;
+
+  const overlayStyle = {
+    background: open ? 'rgba(27, 24, 20, .42)' : 'rgba(27, 24, 20, 0)',
+    transition: 'background 280ms ease',
+  } as CSSProperties;
+
+  const coverStyle = {
+    opacity: open || returning ? 1 : 0,
+    transform: open || returning ? 'scale(1)' : 'scale(1.02)',
+    transition: open && !returning
+      ? 'opacity 260ms ease 120ms, transform 860ms cubic-bezier(.16, 1, .3, 1)'
+      : 'opacity 120ms ease, transform 860ms cubic-bezier(.16, 1, .3, 1)',
+  } as CSSProperties;
+
+  const panelStyle = {
+    transition: open && !returning
+      ? 'opacity 340ms ease 280ms, transform 460ms cubic-bezier(.16, 1, .3, 1) 280ms'
+      : 'opacity 170ms ease, transform 230ms ease',
   } as CSSProperties;
 
   const frameClassName = [
@@ -289,14 +354,29 @@ function VolumeDetail({ selection, onDismiss }: { selection: SelectedVolume; onD
       role="dialog"
       aria-modal="true"
       aria-label={`${volume.title} by ${volume.creator}`}
+      style={overlayStyle}
       onMouseDown={(event) => {
         if (event.currentTarget === event.target) dismiss();
       }}
     >
-      <div className={frameClassName} style={detailStyle} aria-hidden="true">
+      <div
+        className={frameClassName}
+        style={detailStyle}
+        aria-hidden="true"
+        onTransitionEnd={(event) => {
+          if (
+            returning
+            && !handoff
+            && event.currentTarget === event.target
+            && event.propertyName === 'transform'
+          ) {
+            beginHandoff();
+          }
+        }}
+      >
         <div className={`${styles.detailCover} ${bindingStyles.detailCoverFace}`}>
           {artUrl ? (
-            <img className={bindingStyles.coverArtwork} src={artUrl} alt="" />
+            <img className={bindingStyles.coverArtwork} src={artUrl} alt="" style={coverStyle} />
           ) : (
             <div className={styles.detailFallback}>
               <span>{volume.demo ? bindingLabel(volume) : volume.workType}</span>
@@ -319,7 +399,7 @@ function VolumeDetail({ selection, onDismiss }: { selection: SelectedVolume; onD
         <div className={bindingStyles.detailBackFace} />
       </div>
 
-      <div className={styles.detailPanel}>
+      <div className={styles.detailPanel} style={panelStyle}>
         <button className={styles.detailClose} type="button" onClick={dismiss} aria-label="Return book to shelf">×</button>
         <div className={styles.detailKicker}>{volume.demo ? 'Binding study' : volume.workType}</div>
         <h2>{volume.title}</h2>
@@ -347,6 +427,7 @@ function SpatialShelf({
   dissolved = false,
   demoVolumes = [],
   selectedVolumeId = null,
+  handoffVolumeId = null,
 }: SpatialShelfProps) {
   const railRef = useRef<HTMLDivElement>(null);
   const volumes = useMemo(
@@ -412,6 +493,7 @@ function SpatialShelf({
               volume={volume}
               onSelect={onSelect}
               selected={selectedVolumeId === volume.publicSlug}
+              handoff={handoffVolumeId === volume.publicSlug}
               key={volume.publicSlug}
             />
           ))}
@@ -429,6 +511,7 @@ export default function SpatialLibrary({
   presentation = 'default',
 }: SpatialLibraryProps) {
   const [selection, setSelection] = useState<SelectedVolume | null>(null);
+  const [handoffVolumeId, setHandoffVolumeId] = useState<string | null>(null);
   const dissolved = presentation === 'dissolved';
 
   const allWorksShelf = useMemo<WnphPublicLibraryShelf>(() => ({
@@ -438,6 +521,7 @@ export default function SpatialLibrary({
   }), [library.books]);
 
   const handleSelect = useCallback((volume: LibraryVolume, source: HTMLElement) => {
+    setHandoffVolumeId(null);
     setSelection({
       volume,
       sourceId: source.id,
@@ -449,9 +533,18 @@ export default function SpatialLibrary({
     });
   }, []);
 
+  const handleReturnLanded = useCallback((volumeId: string) => {
+    setHandoffVolumeId(volumeId);
+  }, []);
+
+  const handleDismiss = useCallback(() => {
+    setSelection(null);
+    setHandoffVolumeId(null);
+  }, []);
+
   return (
     <>
-      <div className={`${styles.libraryScene} ${selection ? styles.sceneMuted : ''}`}>
+      <div className={styles.libraryScene}>
         <SpatialShelf
           shelf={allWorksShelf}
           books={library.books}
@@ -459,6 +552,7 @@ export default function SpatialLibrary({
           dissolved={dissolved}
           demoVolumes={dissolved ? DEMO_BINDING_VOLUMES : []}
           selectedVolumeId={selection?.volume.publicSlug ?? null}
+          handoffVolumeId={handoffVolumeId}
         />
 
         {showDirectory && library.shelves.length > 0 ? (
@@ -479,7 +573,13 @@ export default function SpatialLibrary({
         ) : null}
       </div>
 
-      {selection ? <VolumeDetail selection={selection} onDismiss={() => setSelection(null)} /> : null}
+      {selection ? (
+        <VolumeDetail
+          selection={selection}
+          onReturnLanded={handleReturnLanded}
+          onDismiss={handleDismiss}
+        />
+      ) : null}
     </>
   );
 }
