@@ -42,4 +42,4 @@ See `docs/architecture/edition-presentation/` for the governing architecture, sc
 
 ## First real package
 
-`wish-fairy-dewy-dear:wnph-paperback-v1/v1/` is the first real WNPH EPP draft. It is intentionally incomplete: the existing Manifestation establishes paperback identity, while trim, final page count, spine width, stock/finish, cover artwork, and presentation assets remain unresolved until publication approval.
+`wish-fairy-dewy-dear-wnph-hardcover-v1/v1/` is the first real WNPH EPP draft. It corrects the earlier accidental paperback assumption and intentionally restores the Henry Altemus hardbound character: a small gray-cloth hardcover with green lettering/art treatment, with the historically evidenced matching jacket still pending governed jacket artwork/specification. The package remains draft while high-resolution recovered artwork, spine/page-block facts, and final presentation assets are unresolved.
