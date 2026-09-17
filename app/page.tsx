@@ -31,7 +31,7 @@ export default async function HomePage() {
           {!library ? (
             <div className={styles.empty}>The library catalogue is temporarily unavailable.</div>
           ) : (
-            <SpatialLibrary library={library} showDirectory={false} />
+            <SpatialLibrary library={library} showDirectory={false} presentation="dissolved" />
           )}
         </div>
       </section>
