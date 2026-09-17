@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://write-now.example/schemas/edition-presentation-manifest.schema.json",
+  "title": "Edition Presentation Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "editionId",
+    "packageVersion",
+    "status",
+    "createdAt",
+    "physical",
+    "artwork",
+    "presentation"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "editionId": { "type": "string", "minLength": 1 },
+    "packageVersion": { "type": "integer", "minimum": 1 },
+    "status": { "enum": ["draft", "approved", "superseded"] },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "approvedAt": { "type": ["string", "null"], "format": "date-time" },
+    "supersedesPackageVersion": { "type": ["integer", "null"], "minimum": 1 },
+    "physical": { "$ref": "#/$defs/physical" },
+    "artwork": { "$ref": "#/$defs/artwork" },
+    "presentation": { "$ref": "#/$defs/presentation" },
+    "materialProfile": { "$ref": "#/$defs/materialProfile" },
+    "provenance": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/provenanceRecord" }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "approved" } } },
+      "then": {
+        "required": ["approvedAt"],
+        "properties": { "approvedAt": { "type": "string", "format": "date-time" } }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "physical": {
+            "properties": { "construction": { "const": "dust-jacket" } },
+            "required": ["construction"]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "artwork": { "required": ["jacketSpread"] },
+          "physical": { "required": ["caseMaterial", "jacketStock"] }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "physical": {
+            "properties": { "construction": { "const": "cloth-case" } },
+            "required": ["construction"]
+          }
+        }
+      },
+      "then": {
+        "properties": { "physical": { "required": ["caseMaterial"] } }
+      }
+    }
+  ],
+  "$defs": {
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["uri", "mediaType"],
+      "properties": {
+        "uri": { "type": "string", "minLength": 1 },
+        "mediaType": { "type": "string", "minLength": 1 },
+        "widthPx": { "type": "integer", "minimum": 1 },
+        "heightPx": { "type": "integer", "minimum": 1 },
+        "sha256": { "type": "string", "pattern": "^[A-Fa-f0-9]{64}$" },
+        "sourceAssetIds": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        }
+      }
+    },
+    "trim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["widthIn", "heightIn"],
+      "properties": {
+        "widthIn": { "type": "number", "exclusiveMinimum": 0 },
+        "heightIn": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "physical": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["binding", "construction"],
+      "properties": {
+        "binding": { "enum": ["paperback", "hardcover", "unknown"] },
+        "construction": {
+          "enum": [
+            "paperback-wrap",
+            "cloth-case",
+            "printed-casewrap",
+            "dust-jacket",
+            "unknown"
+          ]
+        },
+        "trim": { "$ref": "#/$defs/trim" },
+        "pageCount": { "type": "integer", "minimum": 1 },
+        "spineWidthIn": { "type": "number", "exclusiveMinimum": 0 },
+        "coverStock": { "type": ["string", "null"] },
+        "caseMaterial": { "type": ["string", "null"] },
+        "jacketStock": { "type": ["string", "null"] },
+        "pageStock": { "type": ["string", "null"] },
+        "surfaceFinish": {
+          "enum": ["matte", "gloss", "soft-touch", "cloth", "uncoated", "unknown"]
+        },
+        "foilOrStamping": { "type": ["string", "null"] }
+      }
+    },
+    "artwork": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "frontCover": { "$ref": "#/$defs/asset" },
+        "backCover": { "$ref": "#/$defs/asset" },
+        "spine": { "$ref": "#/$defs/asset" },
+        "fullWrap": { "$ref": "#/$defs/asset" },
+        "jacketSpread": { "$ref": "#/$defs/asset" },
+        "caseFront": { "$ref": "#/$defs/asset" },
+        "caseSpine": { "$ref": "#/$defs/asset" },
+        "caseBack": { "$ref": "#/$defs/asset" }
+      }
+    },
+    "presentation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "shelfSpine": { "$ref": "#/$defs/asset" },
+        "frontCover": { "$ref": "#/$defs/asset" },
+        "threeQuarterMockup": { "$ref": "#/$defs/asset" },
+        "detailMockup": { "$ref": "#/$defs/asset" },
+        "jacketOffMockup": { "$ref": "#/$defs/asset" }
+      }
+    },
+    "materialProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cover": { "type": ["string", "null"] },
+        "case": { "type": ["string", "null"] },
+        "jacket": { "type": ["string", "null"] },
+        "pages": { "type": ["string", "null"] }
+      }
+    },
+    "provenanceRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["assetUri", "kind", "createdAt"],
+      "properties": {
+        "assetUri": { "type": "string", "minLength": 1 },
+        "kind": { "enum": ["source-artwork", "generated-presentation", "manual-presentation"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "generator": { "type": ["string", "null"] },
+        "generatorVersion": { "type": ["string", "null"] },
+        "sourceAssetUris": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}

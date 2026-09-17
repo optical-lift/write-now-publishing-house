@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "editionId": "example-jacketed-hardcover-edition",
+  "packageVersion": 1,
+  "status": "draft",
+  "createdAt": "2026-09-16T00:00:00Z",
+  "approvedAt": null,
+  "supersedesPackageVersion": null,
+  "physical": {
+    "binding": "hardcover",
+    "construction": "dust-jacket",
+    "trim": { "widthIn": 6, "heightIn": 9 },
+    "pageCount": 320,
+    "spineWidthIn": 0.96,
+    "coverStock": null,
+    "caseMaterial": "deep plum cloth over rigid board",
+    "jacketStock": "matte coated jacket stock",
+    "pageStock": "cream uncoated text stock",
+    "surfaceFinish": "matte",
+    "foilOrStamping": "small case-spine stamp beneath jacket"
+  },
+  "artwork": {
+    "jacketSpread": {
+      "uri": "asset://examples/jacketed-hardcover/jacket-spread",
+      "mediaType": "image/tiff"
+    },
+    "caseSpine": {
+      "uri": "asset://examples/jacketed-hardcover/case-spine",
+      "mediaType": "image/svg+xml"
+    }
+  },
+  "presentation": {
+    "shelfSpine": {
+      "uri": "asset://examples/jacketed-hardcover/shelf-spine",
+      "mediaType": "image/png"
+    },
+    "frontCover": {
+      "uri": "asset://examples/jacketed-hardcover/front-cover",
+      "mediaType": "image/png"
+    },
+    "threeQuarterMockup": {
+      "uri": "asset://examples/jacketed-hardcover/three-quarter",
+      "mediaType": "image/png"
+    },
+    "detailMockup": {
+      "uri": "asset://examples/jacketed-hardcover/detail-mockup",
+      "mediaType": "image/png"
+    },
+    "jacketOffMockup": {
+      "uri": "asset://examples/jacketed-hardcover/jacket-off",
+      "mediaType": "image/png"
+    }
+  },
+  "materialProfile": {
+    "cover": null,
+    "case": "cloth",
+    "jacket": "coated-paper-matte",
+    "pages": "paper-block"
+  },
+  "provenance": []
+}
