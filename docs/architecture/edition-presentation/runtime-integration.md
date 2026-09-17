@@ -2,89 +2,113 @@
 
 This document defines the first implementation seam for the Edition Presentation System (EPS) without changing database authority.
 
+## WNPH identity mapping
+
+Database inspection established that WNPH already owns concrete publication-form identity through `wnph.manifestations`. EPS therefore does not need a second Edition table or frontend-created edition identifier.
+
+Within WNPH:
+
+```text
+Work
+  -> publication Expression
+      -> Manifestation
+          -> Edition Presentation Package
+```
+
+EPP v1 `editionId` maps to the Manifestation canonical key. See ADR-0002.
+
+For the first real package:
+
+```text
+Expression:    wish-fairy-dewy-dear:wnph-publication-e1
+Manifestation: wish-fairy-dewy-dear:wnph-paperback-v1
+EPP editionId: wish-fairy-dewy-dear:wnph-paperback-v1
+```
+
 ## Current public contract limitation
 
-`wnph_public_library_v1` currently exposes public release/library facts including `public_slug`, release sequence/time, render hashes, bibliographic Work identity, chapter/media counts, and representative media. It does not yet expose a canonical Edition identifier or Edition Presentation Package (EPP) reference.
+`wnph_public_library_v1` currently exposes public release/library facts including `public_slug`, release sequence/time, render hashes, bibliographic Work identity, chapter/media counts, and representative media. It does not expose the owning physical Manifestation or an EPP reference.
 
-That means the public frontend cannot truthfully derive Edition identity from the existing library payload.
+The frontend therefore cannot derive Manifestation identity from the public payload alone.
 
 ## V1 integration rule
 
-Until a canonical Edition/EPP read seam exists, the public site may use a **derived presentation locator**:
+Until a canonical Manifestation/EPP public read seam exists, the public site may use a **derived presentation locator**:
 
 ```text
 public_slug
-  -> canonical editionId
+  -> canonical Manifestation key
   -> current approved EPP
 ```
 
-The locator is generated from publication-owned package records. `public_slug` is only a lookup key because it is already present in the public release contract. It does not become Edition identity and it does not authorize creation of Edition facts in the frontend.
+`public_slug` is only a lookup key. It never becomes Manifestation identity and never authorizes the frontend to create physical-book facts.
 
 ## Runtime modules
 
 - `lib/edition-presentation.ts`
   - TypeScript runtime contract for EPP v1.
-  - Validation of package identity, physical consistency, approved-package completeness, construction-specific requirements, and asset references.
+  - Validates physical consistency and approval completeness.
 - `lib/edition-presentation-index.ts`
-  - Builds a read-only lookup from public slug to exactly one approved current EPP locator.
-  - Rejects duplicate locators, invalid packages, and edition/package identity mismatches.
+  - Builds a read-only lookup from public slug to one approved EPP.
+  - Rejects draft/invalid packages, duplicates, and identity mismatches.
 - `lib/library-epp-adapter.ts`
-  - Converts a library book plus an approved EPP locator into consumer-safe presentation assets.
-  - Returns `null` when there is no approved package rather than inventing a book.
+  - Converts a public library book plus an approved EPP locator into consumer-safe presentation assets.
+  - Returns `null` instead of inventing a book when no approved package exists.
 
-These modules do not mutate publication state, do not create Edition identity, and do not change the public RPC contract.
+These modules do not mutate publication state and do not change the public RPC contract.
 
-## Artifact-first package layout
+## Artifact-first packages
 
-Publication packages may initially be represented as repository or object-storage artifacts following the convention documented at `edition-presentations/README.md`.
+Packages may initially be repository/object-storage artifacts using `edition-presentations/`. Large binary artwork and mockups may live in immutable object storage; manifests retain durable references and hashes.
 
-Large binary artwork/mockups do not need to be committed to this application repository. The EPP manifest stores durable asset references and hashes; the package index only points consumers to approved packages.
+A draft package may also contain `references/` and `proposals/`. Those directories are publication-workspace material and are invisible to public consumers. See `proposal-workflow.md`.
+
+## First real package
+
+The first real draft is owned by the already-existing planned paperback Manifestation for *The Wish Fairy and Dewy Dear*.
+
+Known authoritative facts admitted to the draft manifest:
+
+- Manifestation canonical key: `wish-fairy-dewy-dear:wnph-paperback-v1`;
+- binding: paperback;
+- construction: paperback wrap.
+
+The active paperback render profile is `wnph:render:paperback:v2`, whose contract states that physical geometry belongs to the Manifestation. The latest planned derivation is reproducible-build-ready from the current publication Expression snapshot.
+
+Unknown physical facts remain absent: trim, final print page count, spine width, stocks/finish, and cover art.
 
 ## Consumer transition
 
-The current spatial-library prototype still uses procedural/fake volumes. It is intentionally unchanged in this slice.
-
-The migration path is:
+The spatial-library prototype remains unchanged while the first package is draft.
 
 ```text
 current
 wnph_public_library_v1
-  -> procedural LibraryVolume prototype
+  -> procedural development prototype
 
-next consumer slice
+future
 wnph_public_library_v1
-  + approved EPP index
+  + approved EPP locator
   -> library EPP adapter
   -> approved shelfSpine / detailMockup
   -> spatial interaction only
 ```
 
-A consumer without an approved EPP must use a neutral non-physical fallback or omit physical rendering. It must not fall back to invented binding, jacket, dimensions, or generated cover identity for a released edition.
+A draft EPP cannot enter the public index.
 
 ## Future canonical seam
 
-A later publication/database change may expose one of these equivalent relationships:
+The publication/database layer should eventually expose the relationship already present in canonical data, for example:
 
 ```text
-public release -> editionId -> currentPresentationPackage
+public release
+  -> publication Expression
+      -> current physical Manifestation(s)
+          -> current approved EPP descriptor
 ```
 
-or
+When that read seam exists, replace the temporary slug locator. The EPP manifest/lifecycle/consumer contract should remain stable.
 
-```text
-public release -> current approved EPP descriptor
-```
+## Deployment boundary
 
-When that exists, replace the temporary `public_slug` locator. The EPP manifest, validator, package lifecycle, and consumer adapter contract should remain unchanged.
-
-## Stop condition for this slice
-
-This implementation slice is complete when:
-
-1. EPP v1 can be represented and validated in TypeScript;
-2. only approved valid packages can enter the derived index;
-3. the public-library adapter can resolve approved presentation assets without guessing;
-4. the architecture documents and three fixture packages are present;
-5. no Supabase schema/RPC, production release, or spatial-shelf behavior has changed.
-
-Deployment remains a separate operation.
+EPP creation, EPP approval, branch movement, preview deployment, and production deployment are separate operations. None authorizes another.
