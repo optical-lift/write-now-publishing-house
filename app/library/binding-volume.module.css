@@ -1,0 +1,299 @@
+.demoButton {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.hardcover > span:last-child,
+.paperback > span:last-child {
+  overflow: visible;
+}
+
+.caseTop,
+.caseBottom,
+.headbandTop,
+.headbandBottom,
+.hinge,
+.jacketSkin {
+  display: none;
+  pointer-events: none;
+}
+
+.paperback > span:last-child {
+  border-radius: 5px 7px 7px 4px;
+  box-shadow:
+    -1px 0 0 rgba(255,255,255,.08) inset,
+    2px 0 0 rgba(0,0,0,.09) inset,
+    5px 9px 15px rgba(31, 28, 24, .13);
+}
+
+.paperback > span:last-child::before {
+  top: 2px;
+  bottom: 2px;
+  border-radius: 0 3px 3px 0;
+}
+
+.paperback > span:last-child::after {
+  inset: 4px 3px;
+  border-color: rgba(255,255,255,.06);
+}
+
+.paperback .hinge {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: 4px;
+  display: block;
+  width: 1px;
+  background: rgba(0,0,0,.18);
+  box-shadow: 1px 0 0 rgba(255,255,255,.08);
+}
+
+.hardcover > span:last-child {
+  border-radius: 3px 5px 4px 3px;
+  box-shadow:
+    -3px 0 0 rgba(255,255,255,.08) inset,
+    4px 0 0 rgba(0,0,0,.14) inset,
+    8px 12px 21px rgba(31, 28, 24, .19);
+}
+
+.hardcover > span:last-child::before {
+  top: 8px;
+  bottom: 8px;
+  border-color: rgba(31, 28, 24, .14);
+}
+
+.hardcover .caseTop,
+.hardcover .caseBottom {
+  position: absolute;
+  z-index: 4;
+  right: -2px;
+  left: -2px;
+  display: block;
+  height: 4px;
+  border-radius: 2px;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.13), transparent 35%, rgba(0,0,0,.12)),
+    var(--spine-color);
+}
+
+.hardcover .caseTop {
+  top: -3px;
+  box-shadow: 0 -1px 0 rgba(255,255,255,.12);
+}
+
+.hardcover .caseBottom {
+  bottom: -3px;
+  box-shadow: 0 1px 0 rgba(0,0,0,.12);
+}
+
+.hardcover .hinge {
+  position: absolute;
+  z-index: 3;
+  top: 7px;
+  bottom: 7px;
+  left: 5px;
+  display: block;
+  width: 2px;
+  border-left: 1px solid rgba(0,0,0,.24);
+  border-right: 1px solid rgba(255,255,255,.07);
+}
+
+.hardcover .headbandTop,
+.hardcover .headbandBottom {
+  position: absolute;
+  z-index: 6;
+  right: 2px;
+  display: block;
+  width: 7px;
+  height: 3px;
+  background: repeating-linear-gradient(90deg, var(--band-color) 0 2px, #e9dfc9 2px 4px);
+}
+
+.hardcover .headbandTop {
+  top: 5px;
+}
+
+.hardcover .headbandBottom {
+  bottom: 5px;
+}
+
+.jacketed .jacketSkin {
+  position: absolute;
+  z-index: 8;
+  inset: -1px -2px;
+  display: block;
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 2px 5px 4px 2px;
+  background: linear-gradient(90deg, rgba(255,255,255,.12), transparent 22%, transparent 72%, rgba(255,255,255,.06));
+  box-shadow: 1px 0 0 rgba(0,0,0,.13);
+}
+
+.unknownBinding > span:last-child {
+  filter: saturate(.92);
+}
+
+.detailGeometry {
+  transform-style: preserve-3d;
+}
+
+.detailGeometry::after {
+  content: none !important;
+}
+
+.detailCoverFace,
+.detailSpineFace,
+.detailPageFace,
+.detailBackFace {
+  backface-visibility: hidden;
+}
+
+.detailSpineFace {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 100%;
+  display: grid;
+  width: var(--detail-spine-width);
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,.18);
+  border-right: 0;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.1), transparent 28%, rgba(0,0,0,.16)),
+    var(--spine-color);
+  color: var(--book-ink);
+  transform: rotateY(-90deg);
+  transform-origin: right center;
+}
+
+.detailSpineFace span {
+  width: calc(var(--target-height) - 72px);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-align: center;
+  transform: rotate(90deg);
+  font-size: .67rem;
+  letter-spacing: .045em;
+}
+
+.detailSpineFace i {
+  position: absolute;
+  top: 7px;
+  bottom: 7px;
+  right: 4px;
+  width: 1px;
+  background: rgba(0,0,0,.2);
+  box-shadow: 1px 0 0 rgba(255,255,255,.08);
+}
+
+.detailPageFace {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 100%;
+  width: var(--detail-depth);
+  border: 1px solid rgba(31,28,24,.12);
+  border-left: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    #eee6d5 0,
+    #eee6d5 3px,
+    #ddd1bc 4px,
+    #eee6d5 5px
+  );
+  transform: rotateY(90deg);
+  transform-origin: left center;
+}
+
+.detailBackFace {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  border: 1px solid rgba(0,0,0,.15);
+  background: color-mix(in srgb, var(--spine-color) 88%, #211c17);
+  transform: translateZ(-22px) rotateY(180deg);
+}
+
+.paperback.detailGeometry .detailSpineFace {
+  top: 2px;
+  bottom: 2px;
+  border-radius: 4px 0 0 4px;
+}
+
+.paperback.detailGeometry .detailPageFace {
+  top: 2px;
+  bottom: 2px;
+}
+
+.paperback.detailGeometry .detailCoverFace {
+  border-radius: 4px 7px 7px 4px;
+  box-shadow: inset 3px 0 7px rgba(0,0,0,.08);
+}
+
+.hardcover.detailGeometry .detailCoverFace {
+  inset: -4px -4px -4px 0;
+  border-radius: 3px 7px 7px 3px;
+  box-shadow:
+    inset 5px 0 8px rgba(0,0,0,.08),
+    0 0 0 1px rgba(255,255,255,.05);
+}
+
+.hardcover.detailGeometry .detailSpineFace {
+  top: -4px;
+  bottom: -4px;
+  border-radius: 3px 0 0 3px;
+  box-shadow:
+    inset -4px 0 8px rgba(0,0,0,.12),
+    inset 2px 0 3px rgba(255,255,255,.06);
+}
+
+.hardcover.detailGeometry .detailPageFace {
+  top: 8px;
+  bottom: 8px;
+}
+
+.detailJacketSheen {
+  display: none;
+}
+
+.jacketed .detailJacketSheen {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  display: block;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: inherit;
+  background:
+    linear-gradient(105deg, rgba(255,255,255,.13), transparent 25%, transparent 68%, rgba(255,255,255,.07)),
+    linear-gradient(90deg, rgba(0,0,0,.05), transparent 9%);
+  box-shadow: 3px 0 0 rgba(0,0,0,.06);
+  pointer-events: none;
+}
+
+.jacketed .detailSpineFace {
+  box-shadow:
+    inset -4px 0 8px rgba(0,0,0,.1),
+    inset 0 0 0 1px rgba(255,255,255,.1);
+}
+
+@media (max-width: 700px) {
+  .hardcover .caseTop,
+  .hardcover .caseBottom {
+    height: 3px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .detailSpineFace,
+  .detailPageFace,
+  .detailCoverFace {
+    transition: none;
+  }
+}

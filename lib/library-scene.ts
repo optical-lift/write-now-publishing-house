@@ -1,5 +1,7 @@
 import type { WnphPublicLibraryBook } from './wnph-public';
 
+export type VolumeBinding = 'hardcover' | 'paperback' | 'unknown';
+
 export type LibraryVolume = {
   publicSlug: string;
   workKey: string;
@@ -16,6 +18,9 @@ export type LibraryVolume = {
   spineColor: string;
   bandColor: string;
   inkColor: string;
+  binding: VolumeBinding;
+  jacket?: boolean;
+  demo?: boolean;
 };
 
 const palettes = [
@@ -69,5 +74,68 @@ export function projectLibraryBookToVolume(book: WnphPublicLibraryBook): Library
     spineColor: palette.spine,
     bandColor: palette.band,
     inkColor: palette.ink,
+    binding: 'unknown',
   };
 }
+
+export const DEMO_BINDING_VOLUMES: LibraryVolume[] = [
+  {
+    publicSlug: 'demo-field-notes-for-rain',
+    workKey: 'demo-field-notes-for-rain',
+    title: 'Field Notes for Rain',
+    creator: 'Mira Vale',
+    workType: 'demo paperback',
+    chapterCount: 11,
+    mediaCount: 0,
+    representativeImageUrl: null,
+    width: 31,
+    height: 276,
+    depth: 17,
+    lean: -3.4,
+    spineColor: '#8a4d38',
+    bandColor: '#d0a36e',
+    inkColor: '#fff4e6',
+    binding: 'paperback',
+    demo: true,
+  },
+  {
+    publicSlug: 'demo-orchard-clock',
+    workKey: 'demo-orchard-clock',
+    title: 'The Orchard Clock',
+    creator: 'Elias North',
+    workType: 'demo cloth hardcover',
+    chapterCount: 18,
+    mediaCount: 4,
+    representativeImageUrl: null,
+    width: 48,
+    height: 307,
+    depth: 29,
+    lean: 0.7,
+    spineColor: '#30433d',
+    bandColor: '#b99a62',
+    inkColor: '#f3ead8',
+    binding: 'hardcover',
+    jacket: false,
+    demo: true,
+  },
+  {
+    publicSlug: 'demo-glass-lantern',
+    workKey: 'demo-glass-lantern',
+    title: 'The Glass Lantern',
+    creator: 'Nora Bell',
+    workType: 'demo jacketed hardcover',
+    chapterCount: 22,
+    mediaCount: 12,
+    representativeImageUrl: null,
+    width: 43,
+    height: 318,
+    depth: 31,
+    lean: 1.8,
+    spineColor: '#5b3b55',
+    bandColor: '#d5b58a',
+    inkColor: '#f9f0df',
+    binding: 'hardcover',
+    jacket: true,
+    demo: true,
+  },
+];

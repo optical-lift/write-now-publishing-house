@@ -4,8 +4,13 @@ import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, MouseEvent } from 'react';
 import type { WnphPublicLibrary, WnphPublicLibraryBook, WnphPublicLibraryShelf } from '../../lib/wnph-public';
-import { projectLibraryBookToVolume, type LibraryVolume } from '../../lib/library-scene';
+import {
+  DEMO_BINDING_VOLUMES,
+  projectLibraryBookToVolume,
+  type LibraryVolume,
+} from '../../lib/library-scene';
 import styles from './spatial-library.module.css';
+import bindingStyles from './binding-volume.module.css';
 
 type SpatialLibraryProps = {
   library: WnphPublicLibrary;
@@ -18,6 +23,7 @@ type SpatialShelfProps = {
   books: WnphPublicLibraryBook[];
   onSelect: (volume: LibraryVolume, origin: DOMRect) => void;
   dissolved?: boolean;
+  demoVolumes?: LibraryVolume[];
 };
 
 type SelectedVolume = {
@@ -61,6 +67,36 @@ const dissolvedShelfStyle: CSSProperties = {
   boxShadow: '0 9px 24px rgba(31, 28, 24, .18), 0 -1px 0 rgba(31, 28, 24, .18)',
 };
 
+function bindingClass(volume: LibraryVolume) {
+  if (volume.binding === 'hardcover') return bindingStyles.hardcover;
+  if (volume.binding === 'paperback') return bindingStyles.paperback;
+  return bindingStyles.unknownBinding;
+}
+
+function bindingLabel(volume: LibraryVolume) {
+  if (volume.binding === 'hardcover' && volume.jacket) return 'jacketed hardcover';
+  if (volume.binding === 'hardcover') return 'cloth hardcover';
+  if (volume.binding === 'paperback') return 'paperback';
+  return 'binding unknown';
+}
+
+function BookSpineAnatomy({ volume }: { volume: LibraryVolume }) {
+  return (
+    <span className={styles.bookBody} aria-hidden="true">
+      <span className={bindingStyles.caseTop} />
+      <span className={bindingStyles.caseBottom} />
+      <span className={bindingStyles.hinge} />
+      <span className={bindingStyles.headbandTop} />
+      <span className={bindingStyles.headbandBottom} />
+      <span className={bindingStyles.jacketSkin} />
+      <span className={styles.band} />
+      <span className={styles.spineTitle}>{volume.title}</span>
+      <span className={styles.spineCreator}>{volume.creator}</span>
+      <span className={styles.pageBlock} />
+    </span>
+  );
+}
+
 function SpatialVolume({
   volume,
   onSelect,
@@ -78,34 +114,60 @@ function SpatialVolume({
     '--book-ink': volume.inkColor,
   } as CSSProperties;
 
-  const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
-    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    event.preventDefault();
-    onSelect(volume, event.currentTarget.getBoundingClientRect());
-  };
+  const className = [
+    styles.volumeHit,
+    bindingClass(volume),
+    volume.jacket ? bindingStyles.jacketed : '',
+    volume.demo ? bindingStyles.demoButton : '',
+  ].filter(Boolean).join(' ');
+
+  const content = (
+    <>
+      <span className={styles.volumeCard} aria-hidden="true">
+        <span className={styles.cardKicker}>{volume.demo ? 'Binding study' : volume.workType}</span>
+        <strong>{volume.title}</strong>
+        <span>{volume.creator}</span>
+        <small>
+          {volume.demo
+            ? `${bindingLabel(volume)} · temporary demo volume`
+            : `${volume.chapterCount} chapters · ${volume.mediaCount} illustrations`}
+        </small>
+      </span>
+      <BookSpineAnatomy volume={volume} />
+    </>
+  );
+
+  if (volume.demo) {
+    return (
+      <button
+        className={className}
+        type="button"
+        aria-label={`Inspect ${volume.title}, ${bindingLabel(volume)} demo`}
+        data-volume
+        style={style}
+        onClick={(event: MouseEvent<HTMLButtonElement>) => {
+          onSelect(volume, event.currentTarget.getBoundingClientRect());
+        }}
+      >
+        {content}
+      </button>
+    );
+  }
 
   return (
     <Link
-      className={styles.volumeHit}
+      className={className}
       href={`/books/${volume.publicSlug}`}
       aria-label={`Open ${volume.title} by ${volume.creator}`}
       data-volume
       style={style}
-      onClick={handleClick}
+      onClick={(event: MouseEvent<HTMLAnchorElement>) => {
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        onSelect(volume, event.currentTarget.getBoundingClientRect());
+      }}
     >
-      <span className={styles.volumeCard} aria-hidden="true">
-        <span className={styles.cardKicker}>{volume.workType}</span>
-        <strong>{volume.title}</strong>
-        <span>{volume.creator}</span>
-        <small>{volume.chapterCount} chapters · {volume.mediaCount} illustrations</small>
-      </span>
-
-      <span className={styles.bookBody} aria-hidden="true">
-        <span className={styles.band} />
-        <span className={styles.spineTitle}>{volume.title}</span>
-        <span className={styles.spineCreator}>{volume.creator}</span>
-        <span className={styles.pageBlock} />
-      </span>
+      {content}
     </Link>
   );
 }
@@ -131,9 +193,11 @@ function VolumeDetail({ selection, onDismiss }: { selection: SelectedVolume; onD
     left: open ? `${targetLeft}px` : `${selection.origin.left}px`,
     width: open ? `${targetWidth}px` : `${selection.origin.width}px`,
     height: open ? `${targetHeight}px` : `${selection.origin.height}px`,
-    transform: open ? 'rotateY(0deg)' : 'rotateY(74deg)',
+    transform: open ? 'rotateY(0deg)' : 'rotateY(88deg)',
     boxShadow: open ? '28px 38px 80px rgba(0,0,0,.35)' : '8px 18px 40px rgba(0,0,0,.08)',
     '--target-height': `${targetHeight}px`,
+    '--detail-spine-width': `${Math.max(18, selection.origin.width)}px`,
+    '--detail-depth': `${Math.max(18, Math.min(34, volume.depth))}px`,
     '--spine-color': volume.spineColor,
     '--band-color': volume.bandColor,
     '--book-ink': volume.inkColor,
@@ -163,6 +227,13 @@ function VolumeDetail({ selection, onDismiss }: { selection: SelectedVolume; onD
     };
   }, []);
 
+  const frameClassName = [
+    styles.detailBookFrame,
+    bindingStyles.detailGeometry,
+    bindingClass(volume),
+    volume.jacket ? bindingStyles.jacketed : '',
+  ].filter(Boolean).join(' ');
+
   return (
     <div
       className={styles.detailOverlay}
@@ -174,43 +245,60 @@ function VolumeDetail({ selection, onDismiss }: { selection: SelectedVolume; onD
         if (event.currentTarget === event.target) dismiss();
       }}
     >
-      <div className={styles.detailBookFrame} style={detailStyle} aria-hidden="true">
-        <div className={styles.detailCover}>
+      <div className={frameClassName} style={detailStyle} aria-hidden="true">
+        <div className={`${styles.detailCover} ${bindingStyles.detailCoverFace}`}>
           {volume.representativeImageUrl ? (
             <img src={volume.representativeImageUrl} alt="" />
           ) : (
             <div className={styles.detailFallback}>
-              <span>{volume.workType}</span>
+              <span>{volume.demo ? bindingLabel(volume) : volume.workType}</span>
               <strong>{volume.title}</strong>
               <small>{volume.creator}</small>
             </div>
           )}
+          <span className={bindingStyles.detailJacketSheen} />
         </div>
-        <div className={styles.detailSpine}>
+        <div className={bindingStyles.detailSpineFace}>
           <span>{volume.title}</span>
+          <i aria-hidden="true" />
         </div>
+        <div className={bindingStyles.detailPageFace} />
+        <div className={bindingStyles.detailBackFace} />
       </div>
 
       <div className={styles.detailPanel}>
         <button className={styles.detailClose} type="button" onClick={dismiss} aria-label="Return book to shelf">×</button>
-        <div className={styles.detailKicker}>{volume.workType}</div>
+        <div className={styles.detailKicker}>{volume.demo ? 'Binding study' : volume.workType}</div>
         <h2>{volume.title}</h2>
         <p className={styles.detailCreator}>{volume.creator}</p>
         <p className={styles.detailFacts}>
-          {volume.chapterCount} chapters · {volume.mediaCount} illustrations
+          {volume.demo
+            ? `${bindingLabel(volume)} · temporary shelf example`
+            : `${volume.chapterCount} chapters · ${volume.mediaCount} illustrations`}
         </p>
-        <Link className={styles.readButton} href={`/books/${volume.publicSlug}`}>
-          Read this edition →
-        </Link>
+        {!volume.demo ? (
+          <Link className={styles.readButton} href={`/books/${volume.publicSlug}`}>
+            Read this edition →
+          </Link>
+        ) : null}
         <button className={styles.returnButton} type="button" onClick={dismiss}>Return to shelf</button>
       </div>
     </div>
   );
 }
 
-function SpatialShelf({ shelf, books, onSelect, dissolved = false }: SpatialShelfProps) {
+function SpatialShelf({
+  shelf,
+  books,
+  onSelect,
+  dissolved = false,
+  demoVolumes = [],
+}: SpatialShelfProps) {
   const railRef = useRef<HTMLDivElement>(null);
-  const volumes = useMemo(() => books.map(projectLibraryBookToVolume), [books]);
+  const volumes = useMemo(
+    () => [...books.map(projectLibraryBookToVolume), ...demoVolumes],
+    [books, demoVolumes],
+  );
   const isShortShelf = volumes.length <= 4;
 
   useEffect(() => {
@@ -314,6 +402,7 @@ export default function SpatialLibrary({
           books={library.books}
           onSelect={handleSelect}
           dissolved={dissolved}
+          demoVolumes={dissolved ? DEMO_BINDING_VOLUMES : []}
         />
 
         {showDirectory && library.shelves.length > 0 ? (
