@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, MouseEvent } from 'react';
 import type { WnphPublicLibrary, WnphPublicLibraryBook, WnphPublicLibraryShelf } from '../../lib/wnph-public';
@@ -98,9 +99,17 @@ function bindingLabel(volume: LibraryVolume) {
   return 'binding unknown';
 }
 
-function BookSpineAnatomy({ volume }: { volume: LibraryVolume }) {
+function BookSpineAnatomy({ volume, hovered }: { volume: LibraryVolume; hovered: boolean }) {
+  const hoverStyle = hovered
+    ? {
+        zIndex: 8,
+        transform: 'translate3d(0, -14px, 40px) rotateY(0deg) rotateZ(0deg)',
+        boxShadow: '8px 17px 26px rgba(31, 28, 24, .22)',
+      } as CSSProperties
+    : undefined;
+
   return (
-    <span className={styles.bookBody} aria-hidden="true">
+    <span className={styles.bookBody} aria-hidden="true" style={hoverStyle}>
       <span className={bindingStyles.caseTop} />
       <span className={bindingStyles.caseBottom} />
       <span className={bindingStyles.hinge} />
@@ -127,6 +136,8 @@ function SpatialVolume({
   selected: boolean;
   handoff: boolean;
 }) {
+  const [hovered, setHovered] = useState(false);
+  const hoverClearance = Math.max(22, Math.min(36, Math.round(volume.width * 0.82)));
   const style = {
     '--book-width': `${volume.width}px`,
     '--book-height': `${volume.height}px`,
@@ -135,6 +146,9 @@ function SpatialVolume({
     '--spine-color': volume.spineColor,
     '--band-color': volume.bandColor,
     '--book-ink': volume.inkColor,
+    marginRight: hovered && !selected ? `${hoverClearance}px` : '0px',
+    zIndex: hovered && !selected ? 18 : undefined,
+    transition: 'margin-right 260ms cubic-bezier(.2,.8,.2,1)',
   } as CSSProperties;
 
   const className = [
@@ -157,7 +171,7 @@ function SpatialVolume({
             : `${volume.chapterCount} chapters · ${volume.mediaCount} illustrations`}
         </small>
       </span>
-      <BookSpineAnatomy volume={volume} />
+      <BookSpineAnatomy volume={volume} hovered={hovered && !selected} />
     </>
   );
 
@@ -169,6 +183,10 @@ function SpatialVolume({
     className,
     tabIndex: selected ? -1 : undefined,
     'aria-hidden': selected || undefined,
+    onMouseEnter: () => setHovered(true),
+    onMouseLeave: () => setHovered(false),
+    onFocus: () => setHovered(true),
+    onBlur: () => setHovered(false),
   };
 
   if (volume.demo) {
@@ -178,6 +196,7 @@ function SpatialVolume({
         type="button"
         aria-label={`Inspect ${volume.title}, ${bindingLabel(volume)} demo`}
         onClick={(event: MouseEvent<HTMLButtonElement>) => {
+          setHovered(false);
           onSelect(volume, event.currentTarget);
         }}
       >
@@ -190,10 +209,11 @@ function SpatialVolume({
     <Link
       {...commonProps}
       href={`/books/${volume.publicSlug}`}
-      aria-label={`Open ${volume.title} by ${volume.creator}`}
+      aria-label={`Bring ${volume.title} by ${volume.creator} forward`}
       onClick={(event: MouseEvent<HTMLAnchorElement>) => {
         if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
         event.preventDefault();
+        setHovered(false);
         onSelect(volume, event.currentTarget);
       }}
     >
@@ -211,6 +231,7 @@ function VolumeDetail({
   onReturnLanded: (volumeId: string) => void;
   onDismiss: () => void;
 }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [returnRect, setReturnRect] = useState<RectSnapshot>(selection.origin);
   const [returning, setReturning] = useState(false);
@@ -220,10 +241,11 @@ function VolumeDetail({
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const volume = selection.volume;
   const compact = selection.viewport.width <= 860;
+  const nativeCoverCap = volume.workKey === 'wish-fairy-and-dewy-dear' ? 420 : 520;
 
   const targetHeight = compact
     ? Math.max(260, Math.min(360, selection.viewport.height * 0.48))
-    : Math.max(300, Math.min(520, selection.viewport.height - 92));
+    : Math.max(300, Math.min(nativeCoverCap, selection.viewport.height - 92));
   const targetWidth = Math.round(targetHeight * 0.68);
   const targetCenterX = compact ? selection.viewport.width / 2 : selection.viewport.width * 0.36;
   const targetLeft = Math.max(24, targetCenterX - targetWidth / 2);
@@ -236,6 +258,11 @@ function VolumeDetail({
     if (!source) return selection.origin;
     return rectSnapshot(source.getBoundingClientRect());
   }, [selection.origin, selection.sourceId]);
+
+  const openEdition = useCallback(() => {
+    if (volume.demo || returningRef.current) return;
+    router.push(`/books/${volume.publicSlug}`);
+  }, [router, volume.demo, volume.publicSlug]);
 
   const beginHandoff = useCallback(() => {
     if (handoffRef.current) return;
@@ -292,10 +319,13 @@ function VolumeDetail({
     };
   }, [dismiss]);
 
+  const landingRotation = 72;
+  const landingProjection = Math.cos((landingRotation * Math.PI) / 180);
   const returnScaleY = Math.max(0.05, returnRect.height / targetHeight);
+  const returnScaleX = Math.max(0.08, returnRect.width / (targetWidth * landingProjection));
   const returnTranslateX = returnRect.left - targetLeft;
   const returnTranslateY = returnRect.top - targetTop;
-  const closedTransform = `translate3d(${returnTranslateX}px, ${returnTranslateY}px, 0) scaleY(${returnScaleY}) rotateY(89deg) rotateZ(${volume.lean}deg)`;
+  const closedTransform = `translate3d(${returnTranslateX}px, ${returnTranslateY}px, 0) scale3d(${returnScaleX}, ${returnScaleY}, 1) rotateY(${landingRotation}deg) rotateZ(${volume.lean}deg)`;
   const artUrl = volume.coverArtUrl ?? volume.representativeImageUrl;
 
   const detailStyle = {
@@ -303,10 +333,11 @@ function VolumeDetail({
     left: `${targetLeft}px`,
     width: `${targetWidth}px`,
     height: `${targetHeight}px`,
-    transform: open ? 'translate3d(0, 0, 0) scaleY(1) rotateY(0deg) rotateZ(0deg)' : closedTransform,
+    transform: open ? 'translate3d(0, 0, 0) scale3d(1, 1, 1) rotateY(0deg) rotateZ(0deg)' : closedTransform,
     transformOrigin: 'left top',
     boxShadow: open ? '28px 38px 80px rgba(0,0,0,.35)' : '8px 18px 40px rgba(0,0,0,.08)',
     opacity: handoff ? 0 : 1,
+    cursor: volume.demo || returning ? 'default' : 'pointer',
     transition: 'transform 860ms cubic-bezier(.16, 1, .3, 1), box-shadow 860ms cubic-bezier(.16, 1, .3, 1), opacity 140ms ease',
     willChange: 'transform, box-shadow, opacity',
     '--target-top': `${targetTop}px`,
@@ -362,7 +393,17 @@ function VolumeDetail({
       <div
         className={frameClassName}
         style={detailStyle}
-        aria-hidden="true"
+        role={volume.demo ? undefined : 'button'}
+        tabIndex={volume.demo || returning ? undefined : 0}
+        aria-label={volume.demo ? undefined : `Open ${volume.title}`}
+        title={volume.demo ? undefined : 'Click the cover again to open the book'}
+        onClick={openEdition}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            openEdition();
+          }
+        }}
         onTransitionEnd={(event) => {
           if (
             returning
@@ -411,7 +452,7 @@ function VolumeDetail({
         </p>
         {!volume.demo ? (
           <Link className={styles.readButton} href={`/books/${volume.publicSlug}`}>
-            Read this edition →
+            Open this edition →
           </Link>
         ) : null}
         <button className={styles.returnButton} type="button" onClick={dismiss}>Return to shelf</button>
