@@ -1,0 +1,141 @@
+.stage {
+  position: relative;
+  min-height: 485px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 43%, rgba(255, 255, 255, .46), transparent 34%),
+    linear-gradient(180deg, rgba(255,255,255,.18), transparent 58%),
+    var(--paper, #f4efe5);
+}
+
+.canvas {
+  position: absolute !important;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  touch-action: none;
+}
+
+.detail {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 66%;
+  width: min(330px, 28vw);
+  color: var(--ink, #211d19);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-44%);
+  transition:
+    opacity 220ms ease,
+    transform 320ms cubic-bezier(.22, 1, .36, 1);
+}
+
+.detailVisible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(-50%);
+}
+
+.kicker,
+.facts,
+.instruction,
+.returnButton {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.kicker,
+.facts {
+  font-size: .65rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  opacity: .66;
+}
+
+.detail h2 {
+  margin: 11px 0 8px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(2rem, 3.2vw, 3.15rem);
+  font-weight: 400;
+  letter-spacing: -.03em;
+  line-height: .98;
+}
+
+.creator {
+  margin: 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1rem;
+  opacity: .76;
+}
+
+.facts {
+  margin: 26px 0 0;
+  line-height: 1.55;
+}
+
+.instruction {
+  margin: 14px 0 0;
+  font-size: .74rem;
+  line-height: 1.5;
+  opacity: .62;
+}
+
+.returnButton {
+  margin-top: 24px;
+  padding: 0 0 4px;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: .74rem;
+  opacity: .72;
+}
+
+.status {
+  position: absolute;
+  z-index: 2;
+  right: 22px;
+  bottom: 18px;
+  margin: 0;
+  color: var(--ink-soft, #6d665d);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: .62rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+@media (max-width: 860px) {
+  .stage {
+    min-height: 560px;
+  }
+
+  .detail {
+    top: auto;
+    right: 24px;
+    bottom: 24px;
+    left: 24px;
+    width: auto;
+    text-align: center;
+    transform: translateY(12px);
+  }
+
+  .detailVisible {
+    transform: translateY(0);
+  }
+
+  .facts {
+    margin-top: 13px;
+  }
+
+  .returnButton {
+    margin-top: 15px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .detail {
+    transition: none;
+  }
+}
