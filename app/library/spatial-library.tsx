@@ -102,16 +102,6 @@ function CoverPeek({ volume }: { volume: LibraryVolume }) {
   );
 }
 
-function BookTopEnvelope({ volume }: { volume: LibraryVolume }) {
-  const className = [
-    shelfStyles.bookTopEnvelope,
-    volume.binding === 'hardcover' ? shelfStyles.hardcoverTopEnvelope : '',
-    volume.binding === 'paperback' ? shelfStyles.paperbackTopEnvelope : '',
-  ].filter(Boolean).join(' ');
-
-  return <span className={className} aria-hidden="true" />;
-}
-
 function shelfPose(index: number, activeIndex: number | null, restLean: number) {
   if (activeIndex === null) {
     return { lean: restLean, shift: 0, depth: 1 };
@@ -125,7 +115,7 @@ function shelfPose(index: number, activeIndex: number | null, restLean: number) 
   const direction = delta < 0 ? -1 : 1;
   const distance = Math.abs(delta);
   const leanMagnitude = Math.max(1.15, 5.25 * Math.exp(-0.42 * (distance - 1)));
-  const shiftMagnitude = 44 * Math.exp(-0.72 * (distance - 1));
+  const shiftMagnitude = 30 * Math.exp(-0.72 * (distance - 1));
 
   return {
     lean: direction * leanMagnitude,
@@ -159,7 +149,8 @@ function ShelfVolume({
     '--book-height': `${volume.height}px`,
     '--pose-lean': `${pose.lean.toFixed(2)}deg`,
     '--pose-shift': `${pose.shift.toFixed(2)}px`,
-    '--cover-reveal': `${Math.max(36, Math.min(46, Math.round(volume.height * 0.14)))}px`,
+    '--cover-width': `${Math.max(58, Math.min(66, Math.round(volume.height * 0.2)))}px`,
+    '--pose-turn': active ? '10deg' : '0deg',
     zIndex: pose.depth,
   } as CSSProperties;
 
@@ -195,7 +186,6 @@ function ShelfVolume({
         <span className={shelfStyles.bookVisual} aria-hidden="true">
           <CoverPeek volume={volume} />
           <SpineVisual volume={volume} />
-          <BookTopEnvelope volume={volume} />
         </span>
       </button>
     );
