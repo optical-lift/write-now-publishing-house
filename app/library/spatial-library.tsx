@@ -63,6 +63,7 @@ function SpineVisual({ volume }: { volume: LibraryVolume }) {
       <span className={shelfStyles.material} />
       <span className={shelfStyles.sheen} />
       <span className={shelfStyles.wear} />
+      <span className={shelfStyles.topPageEdge} />
     </span>
   );
 }
