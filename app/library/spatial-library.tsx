@@ -102,6 +102,25 @@ function CoverPeek({ volume }: { volume: LibraryVolume }) {
   );
 }
 
+function BottomCoverEdge({ volume }: { volume: LibraryVolume }) {
+  const artUrl = volume.coverArtUrl ?? volume.representativeImageUrl;
+
+  if (!artUrl && !volume.demo) return null;
+
+  const style = {
+    '--bottom-cover-color': volume.spineColor,
+    '--bottom-cover-image': artUrl ? `url(${JSON.stringify(artUrl)})` : 'none',
+  } as CSSProperties;
+
+  const className = [
+    shelfStyles.bottomCoverEdge,
+    volume.binding === 'hardcover' ? shelfStyles.hardcoverBottomEdge : '',
+    volume.binding === 'paperback' ? shelfStyles.paperbackBottomEdge : '',
+  ].filter(Boolean).join(' ');
+
+  return <span className={className} style={style} aria-hidden="true" />;
+}
+
 function shelfPose(index: number, activeIndex: number | null, restLean: number) {
   if (activeIndex === null) {
     return { lean: restLean, shift: 0, depth: 1 };
@@ -184,6 +203,7 @@ function ShelfVolume({
         onClick={(event) => onSelect(index, event.currentTarget)}
       >
         <span className={shelfStyles.bookVisual} aria-hidden="true">
+          <BottomCoverEdge volume={volume} />
           <CoverPeek volume={volume} />
           <SpineVisual volume={volume} />
         </span>
