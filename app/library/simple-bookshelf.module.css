@@ -75,7 +75,7 @@
   z-index: 0;
   bottom: 1px;
   left: calc(100% - 4px);
-  width: clamp(30px, calc(var(--book-width) * 1.35), 48px);
+  width: 42px;
   height: calc(100% - 2px);
   overflow: hidden;
   border: 1px solid rgba(37, 31, 25, .14);
@@ -557,7 +557,7 @@
   }
 
   .coverPeek {
-    width: clamp(26px, calc(var(--book-width) * 1.15), 40px);
+    width: 36px;
   }
 
   .inspectionCover,
