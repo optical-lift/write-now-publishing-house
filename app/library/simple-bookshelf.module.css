@@ -103,22 +103,22 @@
   will-change: transform;
 }
 
-.activeSlot.rigidTrialSlot .rigidPreview,
-.rigidTrialSlot:focus-visible .rigidPreview {
+.activeSlot.rigidVolumeSlot .rigidPreview,
+.rigidVolumeSlot:focus-visible .rigidPreview {
   opacity: 1;
 }
 
-.activeSlot.rigidTrialSlot .rigidBook,
-.rigidTrialSlot:focus-visible .rigidBook {
+.activeSlot.rigidVolumeSlot .rigidBook,
+.rigidVolumeSlot:focus-visible .rigidBook {
   transform: rotateY(72deg);
 }
 
-.activeSlot.rigidTrialSlot .spine,
-.rigidTrialSlot:focus-visible .spine {
+.activeSlot.rigidVolumeSlot .spine,
+.rigidVolumeSlot:focus-visible .spine {
   opacity: 0;
 }
 
-.rigidTrialSlot .tooltip {
+.rigidVolumeSlot .tooltip {
   display: none;
 }
 
@@ -149,6 +149,37 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.rigidFrontFallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 14px;
+  padding: 28px 22px;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.10), transparent 18%, rgba(0,0,0,.08)),
+    var(--rigid-spine-color);
+  color: var(--rigid-ink);
+  text-align: center;
+}
+
+.rigidFrontFallback strong {
+  max-width: 12ch;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1.02;
+}
+
+.rigidFrontFallback small {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 9px;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+  opacity: .74;
 }
 
 .rigidBack {
