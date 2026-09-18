@@ -57,8 +57,8 @@
   cursor: default;
 }
 
-/* A tight contact mark is enough to give the books weight. Keep it close to
-   the shelf surface so it never reads as a floating drop-shadow cloud. */
+/* Keep each contact mark tight to the shelf surface so the books read as
+   planted on the browser-floor shelf rather than floating above it. */
 .bookSlot::before,
 .demoSlot::before {
   content: '';
