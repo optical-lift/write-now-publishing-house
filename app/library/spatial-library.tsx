@@ -85,8 +85,14 @@ function CoverPeek({ volume }: { volume: LibraryVolume }) {
     '--peek-ink': volume.inkColor,
   } as CSSProperties;
 
+  const className = [
+    shelfStyles.coverPeek,
+    volume.binding === 'hardcover' ? shelfStyles.hardcoverPeek : '',
+    volume.binding === 'paperback' ? shelfStyles.paperbackPeek : '',
+  ].filter(Boolean).join(' ');
+
   return (
-    <span className={shelfStyles.coverPeek} style={style} aria-hidden="true">
+    <span className={className} style={style} aria-hidden="true">
       {artUrl ? (
         <img src={artUrl} alt="" draggable={false} />
       ) : (
@@ -94,6 +100,16 @@ function CoverPeek({ volume }: { volume: LibraryVolume }) {
       )}
     </span>
   );
+}
+
+function BookTopEnvelope({ volume }: { volume: LibraryVolume }) {
+  const className = [
+    shelfStyles.bookTopEnvelope,
+    volume.binding === 'hardcover' ? shelfStyles.hardcoverTopEnvelope : '',
+    volume.binding === 'paperback' ? shelfStyles.paperbackTopEnvelope : '',
+  ].filter(Boolean).join(' ');
+
+  return <span className={className} aria-hidden="true" />;
 }
 
 function shelfPose(index: number, activeIndex: number | null, restLean: number) {
@@ -109,7 +125,7 @@ function shelfPose(index: number, activeIndex: number | null, restLean: number) 
   const direction = delta < 0 ? -1 : 1;
   const distance = Math.abs(delta);
   const leanMagnitude = Math.max(1.15, 5.25 * Math.exp(-0.42 * (distance - 1)));
-  const shiftMagnitude = 30 * Math.exp(-0.72 * (distance - 1));
+  const shiftMagnitude = 44 * Math.exp(-0.72 * (distance - 1));
 
   return {
     lean: direction * leanMagnitude,
@@ -143,8 +159,7 @@ function ShelfVolume({
     '--book-height': `${volume.height}px`,
     '--pose-lean': `${pose.lean.toFixed(2)}deg`,
     '--pose-shift': `${pose.shift.toFixed(2)}px`,
-    '--cover-width': `${Math.round(volume.height * 0.66)}px`,
-    '--pose-turn': active ? '12deg' : '0deg',
+    '--cover-reveal': `${Math.max(36, Math.min(46, Math.round(volume.height * 0.14)))}px`,
     zIndex: pose.depth,
   } as CSSProperties;
 
@@ -180,6 +195,7 @@ function ShelfVolume({
         <span className={shelfStyles.bookVisual} aria-hidden="true">
           <CoverPeek volume={volume} />
           <SpineVisual volume={volume} />
+          <BookTopEnvelope volume={volume} />
         </span>
       </button>
     );
