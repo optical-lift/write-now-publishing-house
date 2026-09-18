@@ -11,7 +11,11 @@ import {
 } from '../../lib/library-scene';
 import styles from './spatial-library.module.css';
 import shelfStyles from './simple-bookshelf.module.css';
-import { settleShelf, type ShelfPhysicsPose } from './shelf-physics';
+import {
+  SHELF_FLOOR_OFFSET,
+  settleShelf,
+  type ShelfPhysicsPose,
+} from './shelf-physics';
 
 type SpatialLibraryProps = {
   library: WnphPublicLibrary;
@@ -135,6 +139,7 @@ function ShelfVolume({
     '--book-height': `${volume.height}px`,
     '--pose-lean': `${pose.lean.toFixed(2)}deg`,
     '--pose-shift': `${pose.shift.toFixed(2)}px`,
+    '--contact-x': `${pose.contactX * 100}%`,
     zIndex: pose.depth,
   } as CSSProperties;
 
@@ -217,7 +222,10 @@ export default function SpatialLibrary({
 
       <div
         className={shelfStyles.stage}
-        style={dissolved ? { width: '100vw', marginLeft: 'calc(50% - 50vw)' } : undefined}
+        style={{
+          '--shelf-floor-offset': `${SHELF_FLOOR_OFFSET}px`,
+          ...(dissolved ? { width: '100vw', marginLeft: 'calc(50% - 50vw)' } : {}),
+        } as CSSProperties}
       >
         <div
           className={[
