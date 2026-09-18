@@ -283,6 +283,22 @@
   overflow: visible;
 }
 
+.activeSlot .paperback,
+.bookSlot:focus-visible .paperback {
+  overflow: visible;
+  border-top-color: transparent;
+}
+
+.activeSlot .paperback .topPageEdge,
+.bookSlot:focus-visible .paperback .topPageEdge {
+  top: -1px;
+  right: 1px;
+  left: 1px;
+  height: 3px;
+  clip-path: none;
+}
+
+
 .activeSlot .hardcover .topPageEdge,
 .bookSlot:focus-visible .hardcover .topPageEdge {
   top: -1px;
