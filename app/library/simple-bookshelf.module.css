@@ -238,7 +238,7 @@
   left: 2px;
   height: 3px;
   border-top: 1px solid rgba(255,255,255,.72);
-  border-bottom: 1px solid rgba(95,78,57,.16);
+  border-bottom: 0;
   background:
     repeating-linear-gradient(
       90deg,
@@ -248,7 +248,6 @@
     ),
     #eee5d4;
   box-shadow:
-    0 1px 1px rgba(55,43,31,.12),
     inset 0 1px rgba(255,255,255,.7);
   opacity: 0;
   pointer-events: none;
