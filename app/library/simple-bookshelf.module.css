@@ -1,5 +1,6 @@
 .stage {
   --shelf-floor-offset: 25px;
+  --shelf-shadow-depth: 10px;
   position: relative;
   width: 100%;
   min-height: 455px;
@@ -9,12 +10,12 @@
 
 .rail {
   position: absolute;
-  inset: 0 0 var(--shelf-floor-offset);
+  inset: 0 0 calc(var(--shelf-floor-offset) - var(--shelf-shadow-depth));
   display: flex;
   align-items: flex-end;
   justify-content: center;
   gap: 4px;
-  padding: 72px max(28px, 4vw) 0;
+  padding: 72px max(28px, 4vw) var(--shelf-shadow-depth);
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
@@ -89,6 +90,67 @@
     transform 240ms cubic-bezier(.22,.72,.2,1),
     opacity 90ms ease;
   will-change: transform, opacity;
+}
+
+.rigidGroundShadow {
+  position: absolute;
+  z-index: 0;
+  left: var(--contact-x, 50%);
+  bottom: calc((var(--shelf-shadow-depth) * -1) + 1px);
+  width: var(--shadow-lift-width, 54px);
+  height: var(--shelf-shadow-depth);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(var(--pose-shift, 0px), 0, 0);
+  transition: opacity 140ms ease;
+}
+
+.rigidGroundShadow::before,
+.rigidGroundShadow::after {
+  content: '';
+  position: absolute;
+  display: block;
+  pointer-events: none;
+}
+
+.rigidGroundShadow::before {
+  left: 0;
+  bottom: 2px;
+  width: var(--shadow-contact-width, 20px);
+  height: 6px;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(31, 28, 24, .30) 0%,
+    rgba(31, 28, 24, .18) 38%,
+    rgba(31, 28, 24, .05) 62%,
+    transparent 78%
+  );
+  filter: blur(.6px);
+  transform: translateX(-50%);
+}
+
+.rigidGroundShadow::after {
+  left: 2px;
+  bottom: 1px;
+  width: 100%;
+  height: 8px;
+  border-radius: 50%;
+  background: linear-gradient(
+    90deg,
+    rgba(31, 28, 24, .16) 0%,
+    rgba(31, 28, 24, .10) 34%,
+    rgba(31, 28, 24, .035) 72%,
+    transparent 100%
+  );
+  filter: blur(2.6px);
+  transform: skewX(-7deg);
+  transform-origin: 0 50%;
+}
+
+.activeSlot.rigidVolumeSlot .rigidGroundShadow,
+.rigidVolumeSlot:focus-visible .rigidGroundShadow {
+  opacity: 1;
 }
 
 .rigidBook {
@@ -641,7 +703,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .rigidPreview,
-  .rigidBook {
+  .rigidBook,
+  .rigidGroundShadow {
     transition: none;
   }
 }
