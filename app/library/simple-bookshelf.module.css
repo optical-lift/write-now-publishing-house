@@ -277,6 +277,25 @@
   transform: scaleY(1);
 }
 
+
+.activeSlot .hardcover,
+.bookSlot:focus-visible .hardcover {
+  border-top-color: transparent;
+}
+
+.activeSlot .hardcover::before,
+.bookSlot:focus-visible .hardcover::before {
+  opacity: 0;
+}
+
+.activeSlot .hardcover .topPageEdge,
+.bookSlot:focus-visible .hardcover .topPageEdge {
+  right: 0;
+  left: 3px;
+  top: 0;
+  clip-path: polygon(4% 0, 100% 0, 100% 100%, 0 100%);
+}
+
 .hardcover::before,
 .hardcover::after {
   content: '';
