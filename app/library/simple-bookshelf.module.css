@@ -286,10 +286,29 @@
 .activeSlot .hardcover .topPageEdge,
 .bookSlot:focus-visible .hardcover .topPageEdge {
   top: -1px;
-  right: -1px;
-  left: 2px;
+  right: 3px;
+  left: 3px;
   height: 4px;
-  clip-path: polygon(4% 0, 100% 0, 100% 100%, 0 100%);
+  clip-path: polygon(2% 0, 98% 0, 100% 100%, 0 100%);
+}
+
+/* On an opened-up hover, the hardcover top is only the two board edges.
+   The page block occupies the middle; there is no dark bar behind it. */
+.activeSlot .hardcover::before,
+.bookSlot:focus-visible .hardcover::before {
+  top: -1px;
+  right: -1px;
+  left: -1px;
+  height: 4px;
+  border-radius: 2px 2px 0 0;
+  background:
+    linear-gradient(
+      90deg,
+      var(--spine-color) 0 3px,
+      transparent 3px calc(100% - 3px),
+      var(--spine-color) calc(100% - 3px) 100%
+    );
+  box-shadow: none;
 }
 
 .hardcover::before,
