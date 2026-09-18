@@ -47,12 +47,9 @@
   position: absolute;
   inset: 0;
   transform:
-    perspective(900px)
     translate3d(var(--pose-shift, 0px), 0, 0)
-    rotateZ(var(--pose-lean, var(--book-lean)))
-    rotateY(var(--pose-turn, 0deg));
+    rotateZ(var(--pose-lean, var(--book-lean)));
   transform-origin: 50% 100%;
-  transform-style: preserve-3d;
   transition:
     transform 240ms cubic-bezier(.22,.72,.2,1),
     opacity 170ms ease;
@@ -86,19 +83,18 @@
   top: 0;
   bottom: 0;
   left: calc(100% - 1px);
-  width: var(--cover-width);
+  width: var(--cover-reveal);
   overflow: hidden;
   border: 1px solid rgba(37, 31, 25, .13);
   border-left: 0;
-  border-radius: 0 5px 5px 0;
+  border-radius: 0 4px 3px 0;
   background: var(--peek-color);
-  box-shadow: 8px 6px 15px rgba(31, 28, 24, .11);
+  box-shadow: 6px 5px 12px rgba(31, 28, 24, .10);
   opacity: 0;
   pointer-events: none;
-  transform: rotateY(-90deg);
-  transform-origin: 0 50%;
-  backface-visibility: hidden;
-  clip-path: polygon(0 1%, 100% 2.5%, 100% 97.5%, 0 99%);
+  clip-path: polygon(0 0, 100% 3px, 100% 100%, 0 100%);
+  transform: translate3d(-4px, 0, 0) scaleX(.08);
+  transform-origin: 0 100%;
   transition:
     opacity 120ms ease,
     transform 220ms cubic-bezier(.22,.72,.2,1);
@@ -109,7 +105,7 @@
 .bookSlot:focus-visible .coverPeek,
 .demoSlot:focus-visible .coverPeek {
   opacity: .96;
-  transform: rotateY(-60deg);
+  transform: translate3d(0, 0, 0) scaleX(1);
 }
 
 .coverPeek img {
@@ -127,59 +123,6 @@
   background:
     linear-gradient(90deg, rgba(255,255,255,.12), transparent 26%, rgba(0,0,0,.07)),
     var(--peek-color);
-}
-
-.bottomCoverEdge {
-  position: absolute;
-  z-index: 2;
-  right: auto;
-  bottom: 0;
-  left: calc(100% - 2px);
-  width: 12px;
-  height: 5px;
-  overflow: hidden;
-  border: 1px solid rgba(37, 31, 25, .13);
-  border-left: 0;
-  border-radius: 0 1px 2px 0;
-  background-color: var(--bottom-cover-color);
-  background-image:
-    var(--bottom-cover-image),
-    linear-gradient(180deg, rgba(255,255,255,.14), rgba(0,0,0,.08));
-  background-position:
-    left bottom,
-    center;
-  background-repeat: no-repeat;
-  background-size:
-    auto var(--book-height),
-    100% 100%;
-  box-shadow:
-    inset 0 1px rgba(255,255,255,.16),
-    2px 1px 4px rgba(31, 28, 24, .08);
-  clip-path: polygon(0 24%, 100% 0, 100% 72%, 0 100%);
-  pointer-events: none;
-  transform-origin: 0 100%;
-  transition:
-    width 220ms cubic-bezier(.22,.72,.2,1),
-    opacity 140ms ease;
-}
-
-.activeSlot .bottomCoverEdge,
-.bookSlot:focus-visible .bottomCoverEdge,
-.demoSlot:focus-visible .bottomCoverEdge {
-  width: 34px;
-}
-
-.hardcoverBottomEdge {
-  height: 6px;
-  box-shadow:
-    inset 0 1px rgba(255,255,255,.22),
-    inset 0 -1px rgba(0,0,0,.08),
-    2px 1px 4px rgba(31, 28, 24, .08);
-}
-
-.paperbackBottomEdge {
-  height: 4px;
-  clip-path: polygon(0 20%, 100% 5%, 100% 78%, 0 100%);
 }
 
 .shelfActive .bookSlot:not(.activeSlot) .spine,
@@ -628,7 +571,6 @@
   .bookVisual,
   .spine,
   .coverPeek,
-  .bottomCoverEdge,
   .topPageEdge,
   .inspectionCover,
   .inspectionFallback,
