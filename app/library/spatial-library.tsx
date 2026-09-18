@@ -226,7 +226,10 @@ export default function SpatialLibrary({
       ) : null}
 
       <div
-        className={shelfStyles.stage}
+        className={[
+          shelfStyles.stage,
+          dissolved ? shelfStyles.floorStage : '',
+        ].filter(Boolean).join(' ')}
         style={{
           '--shelf-floor-offset': `${SHELF_FLOOR_OFFSET}px`,
           ...(dissolved ? { width: '100vw', marginLeft: 'calc(50% - 50vw)' } : {}),
