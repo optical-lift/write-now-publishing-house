@@ -5,6 +5,7 @@ export type ShelfPhysicsPose = {
   lean: number;
   depth: number;
   pressure: number;
+  contactX: 0 | 0.5 | 1;
 };
 
 type HorizontalEnvelope = {
@@ -17,6 +18,8 @@ type WorkingPose = {
   lean: number;
 };
 
+export const SHELF_FLOOR_OFFSET = 25;
+
 const SHELF_GAP = 4;
 const RIGID_HOVER_ANGLE = 72;
 const MAX_CONTACT_LEAN = 7;
@@ -27,6 +30,12 @@ function degreesToRadians(value: number) {
 
 function radiansToDegrees(value: number) {
   return value * 180 / Math.PI;
+}
+
+function contactXForLean(lean: number): 0 | 0.5 | 1 {
+  if (lean < -0.01) return 0;
+  if (lean > 0.01) return 1;
+  return 0.5;
 }
 
 export function buildNaturalShelfState(volumes: LibraryVolume[]) {
@@ -168,6 +177,7 @@ export function settleShelf(
       lean: volume.lean,
       depth: 1,
       pressure: 0,
+      contactX: contactXForLean(volume.lean),
     }));
   }
 
@@ -188,6 +198,7 @@ export function settleShelf(
       lean: pose.lean,
       depth: index === activeIndex ? 30 : Math.max(2, 20 - distance),
       pressure: Math.abs(shift),
+      contactX: contactXForLean(pose.lean),
     };
   });
 }
