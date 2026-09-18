@@ -198,3 +198,22 @@
     min-height: 240px;
   }
 }
+
+
+/* Homepage-only browser-floor library. These selectors are intentionally
+   compound so the catalogue /library page keeps its existing spacing. */
+.library.homeLibrary {
+  min-height: calc(100vh - 58px);
+  min-height: calc(100dvh - 58px);
+  height: calc(100vh - 58px);
+  height: calc(100dvh - 58px);
+  padding: 0;
+  overflow: hidden;
+}
+
+.inner.homeLibraryInner {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  margin: 0;
+}
