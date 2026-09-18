@@ -43,6 +43,22 @@
   cursor: pointer;
 }
 
+.bookVisual {
+  position: absolute;
+  inset: 0;
+  transform:
+    perspective(900px)
+    translate3d(var(--pose-shift, 0px), 0, 0)
+    rotateZ(var(--pose-lean, var(--book-lean)))
+    rotateY(var(--pose-turn, 0deg));
+  transform-origin: 50% 100%;
+  transform-style: preserve-3d;
+  transition:
+    transform 240ms cubic-bezier(.22,.72,.2,1),
+    opacity 170ms ease;
+  will-change: transform;
+}
+
 .spine {
   position: absolute;
   z-index: 1;
@@ -58,49 +74,38 @@
     inset -2px 0 0 rgba(0,0,0,.08),
     2px 5px 9px rgba(31, 28, 24, .12);
   color: var(--book-ink);
-  transform:
-    translate3d(var(--pose-shift, 0px), 0, 0)
-    rotateZ(var(--pose-lean, var(--book-lean)));
-  transform-origin: 50% 100%;
   transition:
-    transform 240ms cubic-bezier(.22,.72,.2,1),
     filter 190ms cubic-bezier(.2,.7,.2,1),
     opacity 190ms cubic-bezier(.2,.7,.2,1),
     box-shadow 190ms ease;
-  will-change: transform;
 }
 
 .coverPeek {
   position: absolute;
   z-index: 0;
-  bottom: 1px;
-  left: calc(100% - 4px);
-  width: 42px;
-  height: calc(100% - 2px);
+  top: 0;
+  bottom: 0;
+  left: calc(100% - 1px);
+  width: var(--cover-width);
   overflow: hidden;
-  border: 1px solid rgba(37, 31, 25, .14);
+  border: 1px solid rgba(37, 31, 25, .13);
   border-left: 0;
-  border-radius: 0 4px 4px 0;
+  border-radius: 0 5px 5px 0;
   background: var(--peek-color);
-  box-shadow: 5px 6px 12px rgba(31, 28, 24, .12);
-  opacity: 0;
+  box-shadow: 8px 6px 15px rgba(31, 28, 24, .11);
   pointer-events: none;
-  clip-path: polygon(0 1.5%, 100% 0, 94% 100%, 0 99%);
-  transform: translate3d(-9px, 0, 0) scaleX(.76) skewY(-.55deg);
-  transform-origin: 0 100%;
-  transition:
-    opacity 130ms ease,
-    transform 220ms cubic-bezier(.22,.72,.2,1);
-  will-change: transform, opacity;
+  transform: rotateY(-90deg);
+  transform-origin: 0 50%;
+  backface-visibility: hidden;
+  clip-path: polygon(0 1%, 100% 2.5%, 100% 97.5%, 0 99%);
 }
 
 .coverPeek img {
   display: block;
-  width: auto;
-  max-width: none;
+  width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: left center;
+  object-position: center;
   filter: saturate(.95) contrast(.98);
 }
 
@@ -110,13 +115,6 @@
   background:
     linear-gradient(90deg, rgba(255,255,255,.12), transparent 26%, rgba(0,0,0,.07)),
     var(--peek-color);
-}
-
-.activeSlot .coverPeek,
-.bookSlot:focus-visible .coverPeek,
-.demoSlot:focus-visible .coverPeek {
-  opacity: .94;
-  transform: translate3d(0, 0, 0) scaleX(1) skewY(-.55deg);
 }
 
 .shelfActive .bookSlot:not(.activeSlot) .spine,
@@ -144,8 +142,7 @@
   z-index: 29 !important;
 }
 
-.selectedSlot .spine,
-.selectedSlot .coverPeek {
+.selectedSlot .bookVisual {
   opacity: 0 !important;
   pointer-events: none;
 }
@@ -556,10 +553,6 @@
     padding-inline: 28px;
   }
 
-  .coverPeek {
-    width: 36px;
-  }
-
   .inspectionCover,
   .inspectionFallback {
     height: min(var(--inspection-height), 52vh, 310px);
@@ -567,6 +560,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .bookVisual,
   .spine,
   .coverPeek,
   .topPageEdge,
