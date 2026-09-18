@@ -108,7 +108,54 @@ function Tooltip({ volume }: { volume: LibraryVolume }) {
   );
 }
 
-function shelfPose(index: number, activeIndex: number | null, restLean: number) {
+const SHELF_GAP = 4;
+const RIGID_HOVER_ANGLE = 72;
+
+function computeRigidHoverPacking(volumes: LibraryVolume[], activeIndex: number) {
+  const naturalLefts: number[] = [];
+  let cursor = 0;
+
+  for (const volume of volumes) {
+    naturalLefts.push(cursor);
+    cursor += volume.width + SHELF_GAP;
+  }
+
+  const shifts = volumes.map(() => 0);
+  const active = volumes[activeIndex];
+  if (!active) return shifts;
+
+  const angle = RIGID_HOVER_ANGLE * Math.PI / 180;
+  const coverWidth = Math.round(active.height * 0.625);
+  const pivot = naturalLefts[activeIndex] + active.width / 2;
+  const halfDepthProjection = (active.width / 2) * Math.sin(angle);
+  const projectedLeft = pivot - halfDepthProjection;
+  const projectedRight = pivot + coverWidth * Math.cos(angle) + halfDepthProjection;
+
+  let rightBoundary = projectedRight + SHELF_GAP;
+  for (let index = activeIndex + 1; index < volumes.length; index += 1) {
+    const naturalLeft = naturalLefts[index];
+    const shift = Math.max(0, rightBoundary - naturalLeft);
+    shifts[index] = shift;
+    rightBoundary = naturalLeft + shift + volumes[index].width + SHELF_GAP;
+  }
+
+  let leftBoundary = projectedLeft - SHELF_GAP;
+  for (let index = activeIndex - 1; index >= 0; index -= 1) {
+    const naturalRight = naturalLefts[index] + volumes[index].width;
+    const shift = Math.min(0, leftBoundary - naturalRight);
+    shifts[index] = shift;
+    leftBoundary = naturalLefts[index] + shift - SHELF_GAP;
+  }
+
+  return shifts;
+}
+
+function shelfPose(
+  index: number,
+  activeIndex: number | null,
+  restLean: number,
+  packedShift: number | null,
+) {
   if (activeIndex === null) {
     return { lean: restLean, shift: 0, depth: 1 };
   }
@@ -121,6 +168,15 @@ function shelfPose(index: number, activeIndex: number | null, restLean: number) 
   const direction = delta < 0 ? -1 : 1;
   const distance = Math.abs(delta);
   const leanMagnitude = Math.max(1.15, 5.25 * Math.exp(-0.42 * (distance - 1)));
+
+  if (packedShift !== null) {
+    return {
+      lean: direction * leanMagnitude,
+      shift: packedShift,
+      depth: Math.max(2, 20 - distance),
+    };
+  }
+
   const shiftMagnitude = Math.min(11, 3.5 + (distance - 1) * 2.6);
 
   return {
@@ -134,14 +190,16 @@ function ShelfVolume({
   volume,
   index,
   activeIndex,
+  packedShift,
   onActivate,
 }: {
   volume: LibraryVolume;
   index: number;
   activeIndex: number | null;
+  packedShift: number | null;
   onActivate: (index: number | null) => void;
 }) {
-  const pose = shelfPose(index, activeIndex, volume.lean);
+  const pose = shelfPose(index, activeIndex, volume.lean, packedShift);
   const active = activeIndex === index;
   const rigidTrial = volume.workKey === 'wish-fairy-and-dewy-dear';
   const slotStyle = {
@@ -204,6 +262,12 @@ export default function SpatialLibrary({
     [dissolved, library.books],
   );
 
+  const rigidPackingShifts = useMemo(() => {
+    if (activeIndex === null) return null;
+    if (volumes[activeIndex]?.workKey !== 'wish-fairy-and-dewy-dear') return null;
+    return computeRigidHoverPacking(volumes, activeIndex);
+  }, [activeIndex, volumes]);
+
   return (
     <div className={styles.libraryScene}>
       {!dissolved ? (
@@ -235,6 +299,7 @@ export default function SpatialLibrary({
               volume={volume}
               index={index}
               activeIndex={activeIndex}
+              packedShift={rigidPackingShifts ? rigidPackingShifts[index] : null}
               onActivate={setActiveIndex}
             />
           ))}
