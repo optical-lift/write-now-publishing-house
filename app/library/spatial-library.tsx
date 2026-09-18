@@ -102,25 +102,6 @@ function CoverPeek({ volume }: { volume: LibraryVolume }) {
   );
 }
 
-function BottomCoverEdge({ volume }: { volume: LibraryVolume }) {
-  const artUrl = volume.coverArtUrl ?? volume.representativeImageUrl;
-
-  if (!artUrl && !volume.demo) return null;
-
-  const style = {
-    '--bottom-cover-color': volume.spineColor,
-    '--bottom-cover-image': artUrl ? `url(${JSON.stringify(artUrl)})` : 'none',
-  } as CSSProperties;
-
-  const className = [
-    shelfStyles.bottomCoverEdge,
-    volume.binding === 'hardcover' ? shelfStyles.hardcoverBottomEdge : '',
-    volume.binding === 'paperback' ? shelfStyles.paperbackBottomEdge : '',
-  ].filter(Boolean).join(' ');
-
-  return <span className={className} style={style} aria-hidden="true" />;
-}
-
 function shelfPose(index: number, activeIndex: number | null, restLean: number) {
   if (activeIndex === null) {
     return { lean: restLean, shift: 0, depth: 1 };
@@ -168,8 +149,7 @@ function ShelfVolume({
     '--book-height': `${volume.height}px`,
     '--pose-lean': `${pose.lean.toFixed(2)}deg`,
     '--pose-shift': `${pose.shift.toFixed(2)}px`,
-    '--cover-width': `${Math.max(58, Math.min(66, Math.round(volume.height * 0.2)))}px`,
-    '--pose-turn': active ? '10deg' : '0deg',
+    '--cover-reveal': `${Math.max(38, Math.min(46, Math.round(volume.height * 0.14)))}px`,
     zIndex: pose.depth,
   } as CSSProperties;
 
@@ -203,7 +183,6 @@ function ShelfVolume({
         onClick={(event) => onSelect(index, event.currentTarget)}
       >
         <span className={shelfStyles.bookVisual} aria-hidden="true">
-          <BottomCoverEdge volume={volume} />
           <CoverPeek volume={volume} />
           <SpineVisual volume={volume} />
         </span>
