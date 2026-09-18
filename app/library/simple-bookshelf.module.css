@@ -129,6 +129,59 @@
     var(--peek-color);
 }
 
+.bottomCoverEdge {
+  position: absolute;
+  z-index: 2;
+  right: auto;
+  bottom: 0;
+  left: calc(100% - 2px);
+  width: 12px;
+  height: 5px;
+  overflow: hidden;
+  border: 1px solid rgba(37, 31, 25, .13);
+  border-left: 0;
+  border-radius: 0 1px 2px 0;
+  background-color: var(--bottom-cover-color);
+  background-image:
+    var(--bottom-cover-image),
+    linear-gradient(180deg, rgba(255,255,255,.14), rgba(0,0,0,.08));
+  background-position:
+    left bottom,
+    center;
+  background-repeat: no-repeat;
+  background-size:
+    auto var(--book-height),
+    100% 100%;
+  box-shadow:
+    inset 0 1px rgba(255,255,255,.16),
+    2px 1px 4px rgba(31, 28, 24, .08);
+  clip-path: polygon(0 24%, 100% 0, 100% 72%, 0 100%);
+  pointer-events: none;
+  transform-origin: 0 100%;
+  transition:
+    width 220ms cubic-bezier(.22,.72,.2,1),
+    opacity 140ms ease;
+}
+
+.activeSlot .bottomCoverEdge,
+.bookSlot:focus-visible .bottomCoverEdge,
+.demoSlot:focus-visible .bottomCoverEdge {
+  width: 34px;
+}
+
+.hardcoverBottomEdge {
+  height: 6px;
+  box-shadow:
+    inset 0 1px rgba(255,255,255,.22),
+    inset 0 -1px rgba(0,0,0,.08),
+    2px 1px 4px rgba(31, 28, 24, .08);
+}
+
+.paperbackBottomEdge {
+  height: 4px;
+  clip-path: polygon(0 20%, 100% 5%, 100% 78%, 0 100%);
+}
+
 .shelfActive .bookSlot:not(.activeSlot) .spine,
 .shelfActive .demoSlot:not(.activeSlot) .spine {
   filter: blur(.25px) brightness(.97) saturate(.91) contrast(.95);
@@ -575,6 +628,7 @@
   .bookVisual,
   .spine,
   .coverPeek,
+  .bottomCoverEdge,
   .topPageEdge,
   .inspectionCover,
   .inspectionFallback,
