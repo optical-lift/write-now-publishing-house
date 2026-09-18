@@ -109,7 +109,7 @@ function shelfPose(index: number, activeIndex: number | null, restLean: number) 
   const direction = delta < 0 ? -1 : 1;
   const distance = Math.abs(delta);
   const leanMagnitude = Math.max(1.15, 5.25 * Math.exp(-0.42 * (distance - 1)));
-  const shiftMagnitude = Math.min(11, 3.5 + (distance - 1) * 2.6);
+  const shiftMagnitude = 30 * Math.exp(-0.72 * (distance - 1));
 
   return {
     lean: direction * leanMagnitude,
@@ -143,6 +143,8 @@ function ShelfVolume({
     '--book-height': `${volume.height}px`,
     '--pose-lean': `${pose.lean.toFixed(2)}deg`,
     '--pose-shift': `${pose.shift.toFixed(2)}px`,
+    '--cover-width': `${Math.round(volume.height * 0.66)}px`,
+    '--pose-turn': active ? '12deg' : '0deg',
     zIndex: pose.depth,
   } as CSSProperties;
 
@@ -175,8 +177,10 @@ function ShelfVolume({
         }}
         onClick={(event) => onSelect(index, event.currentTarget)}
       >
-        <CoverPeek volume={volume} />
-        <SpineVisual volume={volume} />
+        <span className={shelfStyles.bookVisual} aria-hidden="true">
+          <CoverPeek volume={volume} />
+          <SpineVisual volume={volume} />
+        </span>
       </button>
     );
   }
@@ -202,8 +206,10 @@ function ShelfVolume({
         onSelect(index, event.currentTarget);
       }}
     >
-      <CoverPeek volume={volume} />
-      <SpineVisual volume={volume} />
+      <span className={shelfStyles.bookVisual} aria-hidden="true">
+        <CoverPeek volume={volume} />
+        <SpineVisual volume={volume} />
+      </span>
     </Link>
   );
 }
