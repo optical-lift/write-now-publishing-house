@@ -22,8 +22,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className={styles.library} aria-label="Library shelves">
-        <div className={styles.inner}>
+      <section className={`${styles.library} ${styles.homeLibrary}`} aria-label="Library shelves">
+        <div className={`${styles.inner} ${styles.homeLibraryInner}`}>
           {!library ? (
             <div className={styles.empty}>The library catalogue is temporarily unavailable.</div>
           ) : (

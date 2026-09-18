@@ -1,0 +1,126 @@
+.stage {
+  position: relative;
+  min-height: 500px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 49% 39%, rgba(255,255,255,.26), transparent 34%),
+    linear-gradient(180deg, rgba(255,255,255,.09), transparent 66%),
+    var(--paper, #f4efe5);
+}
+
+.canvas {
+  position: absolute !important;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  touch-action: none;
+  opacity: 0;
+  transition: opacity 140ms ease-out;
+}
+
+.canvasReady {
+  opacity: 1;
+}
+
+.detail {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 61.5%;
+  width: min(300px, 25vw);
+  color: var(--ink, #211d19);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-45%);
+  transition:
+    opacity 240ms ease,
+    transform 340ms cubic-bezier(.22, 1, .36, 1);
+}
+
+.detailVisible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(-50%);
+}
+
+.kicker,
+.facts,
+.returnButton {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.kicker,
+.facts {
+  font-size: .61rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  opacity: .62;
+}
+
+.detail h2 {
+  margin: 10px 0 7px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(1.72rem, 2.55vw, 2.62rem);
+  font-weight: 400;
+  letter-spacing: -.028em;
+  line-height: 1;
+}
+
+.creator {
+  margin: 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: .94rem;
+  opacity: .72;
+}
+
+.facts {
+  margin: 19px 0 0;
+  line-height: 1.5;
+}
+
+.returnButton {
+  margin-top: 19px;
+  padding: 0 0 4px;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: .71rem;
+  opacity: .68;
+}
+
+@media (max-width: 860px) {
+  .stage {
+    min-height: 560px;
+  }
+
+  .detail {
+    top: auto;
+    right: 24px;
+    bottom: 24px;
+    left: 24px;
+    width: auto;
+    text-align: center;
+    transform: translateY(12px);
+  }
+
+  .detailVisible {
+    transform: translateY(0);
+  }
+
+  .facts {
+    margin-top: 12px;
+  }
+
+  .returnButton {
+    margin-top: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .canvas,
+  .detail {
+    transition: none;
+  }
+}

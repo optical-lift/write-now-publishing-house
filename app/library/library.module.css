@@ -8,6 +8,24 @@
   margin: 0 auto;
 }
 
+/* The dissolved homepage shelf owns exactly the viewport beneath the sticky
+   header. Do not inherit the catalogue page's framing padding here. */
+.homeLibrary {
+  min-height: calc(100vh - 58px);
+  min-height: calc(100dvh - 58px);
+  height: calc(100vh - 58px);
+  height: calc(100dvh - 58px);
+  padding: 0;
+  overflow: hidden;
+}
+
+.homeLibraryInner {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  margin: 0;
+}
+
 .homeLibraryIntro {
   margin-bottom: 36px;
 }

@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "editionId": "wish-fairy-dewy-dear:wnph-hardcover-v1",
+  "packageVersion": 1,
+  "status": "draft",
+  "createdAt": "2026-09-17T02:20:00Z",
+  "approvedAt": null,
+  "supersedesPackageVersion": null,
+  "physical": {
+    "binding": "hardcover",
+    "construction": "cloth-case",
+    "caseMaterial": "gray book cloth over case boards; exact WNPH cloth and board specification pending",
+    "surfaceFinish": "cloth"
+  },
+  "artwork": {},
+  "presentation": {},
+  "materialProfile": {
+    "cover": "recovered front-cover artwork exists, but the durable high-resolution presentation asset remains unresolved; the repository WebP derivative was rejected after truncation was verified",
+    "case": "gray cloth case",
+    "jacket": null,
+    "pages": null
+  },
+  "provenance": []
+}
