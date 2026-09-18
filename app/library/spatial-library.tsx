@@ -69,8 +69,7 @@ function SpineVisual({ volume }: { volume: LibraryVolume }) {
 }
 
 function RigidHoverBook({ volume }: { volume: LibraryVolume }) {
-  const artUrl = volume.coverArtUrl ?? volume.representativeImageUrl;
-  if (!artUrl) return null;
+  const artUrl = volume.coverArtUrl;
 
   const style = {
     '--rigid-cover-width': `${Math.round(volume.height * 0.625)}px`,
@@ -84,7 +83,14 @@ function RigidHoverBook({ volume }: { volume: LibraryVolume }) {
     <span className={shelfStyles.rigidPreview} style={style} aria-hidden="true">
       <span className={shelfStyles.rigidBook}>
         <span className={`${shelfStyles.rigidFace} ${shelfStyles.rigidFront}`}>
-          <img src={artUrl} alt="" draggable={false} />
+          {artUrl ? (
+            <img src={artUrl} alt="" draggable={false} />
+          ) : volume.demo ? (
+            <span className={shelfStyles.rigidFrontFallback}>
+              <strong>{volume.title}</strong>
+              <small>{volume.creator}</small>
+            </span>
+          ) : null}
         </span>
         <span className={`${shelfStyles.rigidFace} ${shelfStyles.rigidBack}`} />
         <span className={`${shelfStyles.rigidFace} ${shelfStyles.rigidSpine}`}>
@@ -201,7 +207,7 @@ function ShelfVolume({
 }) {
   const pose = shelfPose(index, activeIndex, volume.lean, packedShift);
   const active = activeIndex === index;
-  const rigidTrial = volume.workKey === 'wish-fairy-and-dewy-dear';
+  const rigidEnabled = Boolean(volume.coverArtUrl || volume.demo);
   const slotStyle = {
     '--book-width': `${volume.width}px`,
     '--book-height': `${volume.height}px`,
@@ -213,7 +219,7 @@ function ShelfVolume({
   const slotClassName = [
     volume.demo ? shelfStyles.demoSlot : shelfStyles.bookSlot,
     active ? shelfStyles.activeSlot : '',
-    rigidTrial ? shelfStyles.rigidTrialSlot : '',
+    rigidEnabled ? shelfStyles.rigidVolumeSlot : '',
   ].filter(Boolean).join(' ');
 
   if (volume.demo) {
@@ -241,7 +247,7 @@ function ShelfVolume({
       onBlur={() => onActivate(null)}
     >
       <Tooltip volume={volume} />
-      {rigidTrial ? <RigidHoverBook volume={volume} /> : null}
+      {rigidEnabled ? <RigidHoverBook volume={volume} /> : null}
       <SpineVisual volume={volume} />
     </Link>
   );
@@ -264,7 +270,8 @@ export default function SpatialLibrary({
 
   const rigidPackingShifts = useMemo(() => {
     if (activeIndex === null) return null;
-    if (volumes[activeIndex]?.workKey !== 'wish-fairy-and-dewy-dear') return null;
+    const activeVolume = volumes[activeIndex];
+    if (!activeVolume || (!activeVolume.coverArtUrl && !activeVolume.demo)) return null;
     return computeRigidHoverPacking(volumes, activeIndex);
   }, [activeIndex, volumes]);
 
