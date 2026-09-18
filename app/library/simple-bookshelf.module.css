@@ -38,16 +38,14 @@
   outline: none;
 }
 
-.bookSlot {
-  cursor: pointer;
-}
-
+.bookSlot,
 .demoSlot {
-  cursor: default;
+  cursor: pointer;
 }
 
 .spine {
   position: absolute;
+  z-index: 1;
   inset: 0;
   overflow: hidden;
   border: 1px solid rgba(37, 31, 25, .16);
@@ -72,6 +70,55 @@
   will-change: transform;
 }
 
+.coverPeek {
+  position: absolute;
+  z-index: 0;
+  bottom: 1px;
+  left: calc(100% - 4px);
+  width: clamp(30px, calc(var(--book-width) * 1.35), 48px);
+  height: calc(100% - 2px);
+  overflow: hidden;
+  border: 1px solid rgba(37, 31, 25, .14);
+  border-left: 0;
+  border-radius: 0 4px 4px 0;
+  background: var(--peek-color);
+  box-shadow: 5px 6px 12px rgba(31, 28, 24, .12);
+  opacity: 0;
+  pointer-events: none;
+  clip-path: polygon(0 1.5%, 100% 0, 94% 100%, 0 99%);
+  transform: translate3d(-9px, 0, 0) scaleX(.76) skewY(-.55deg);
+  transform-origin: 0 100%;
+  transition:
+    opacity 130ms ease,
+    transform 220ms cubic-bezier(.22,.72,.2,1);
+  will-change: transform, opacity;
+}
+
+.coverPeek img {
+  display: block;
+  width: auto;
+  max-width: none;
+  height: 100%;
+  object-fit: cover;
+  object-position: left center;
+  filter: saturate(.95) contrast(.98);
+}
+
+.coverPeekFixture {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.12), transparent 26%, rgba(0,0,0,.07)),
+    var(--peek-color);
+}
+
+.activeSlot .coverPeek,
+.bookSlot:focus-visible .coverPeek,
+.demoSlot:focus-visible .coverPeek {
+  opacity: .94;
+  transform: translate3d(0, 0, 0) scaleX(1) skewY(-.55deg);
+}
+
 .shelfActive .bookSlot:not(.activeSlot) .spine,
 .shelfActive .demoSlot:not(.activeSlot) .spine {
   filter: blur(.25px) brightness(.97) saturate(.91) contrast(.95);
@@ -79,7 +126,8 @@
 }
 
 .activeSlot .spine,
-.bookSlot:focus-visible .spine {
+.bookSlot:focus-visible .spine,
+.demoSlot:focus-visible .spine {
   filter: brightness(1.025) saturate(1.06) contrast(1.08);
   opacity: 1;
   box-shadow:
@@ -92,7 +140,18 @@
   z-index: 30 !important;
 }
 
-.bookSlot:focus-visible .spine {
+.selectedSlot {
+  z-index: 29 !important;
+}
+
+.selectedSlot .spine,
+.selectedSlot .coverPeek {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+.bookSlot:focus-visible .spine,
+.demoSlot:focus-visible .spine {
   outline: 2px solid color-mix(in srgb, var(--ink) 46%, transparent);
   outline-offset: 3px;
 }
@@ -272,25 +331,28 @@
 }
 
 .activeSlot .topPageEdge,
-.bookSlot:focus-visible .topPageEdge {
+.bookSlot:focus-visible .topPageEdge,
+.demoSlot:focus-visible .topPageEdge {
   opacity: .78;
   transform: scaleY(1);
 }
 
-
 .activeSlot .hardcover,
-.bookSlot:focus-visible .hardcover {
+.bookSlot:focus-visible .hardcover,
+.demoSlot:focus-visible .hardcover {
   overflow: visible;
 }
 
 .activeSlot .paperback,
-.bookSlot:focus-visible .paperback {
+.bookSlot:focus-visible .paperback,
+.demoSlot:focus-visible .paperback {
   overflow: visible;
   border-top-color: transparent;
 }
 
 .activeSlot .paperback .topPageEdge,
-.bookSlot:focus-visible .paperback .topPageEdge {
+.bookSlot:focus-visible .paperback .topPageEdge,
+.demoSlot:focus-visible .paperback .topPageEdge {
   top: -1px;
   right: 1px;
   left: 1px;
@@ -298,9 +360,9 @@
   clip-path: none;
 }
 
-
 .activeSlot .hardcover .topPageEdge,
-.bookSlot:focus-visible .hardcover .topPageEdge {
+.bookSlot:focus-visible .hardcover .topPageEdge,
+.demoSlot:focus-visible .hardcover .topPageEdge {
   top: -1px;
   right: 3px;
   left: 3px;
@@ -311,7 +373,8 @@
 /* On an opened-up hover, the hardcover top is only the two board edges.
    The page block occupies the middle; there is no dark bar behind it. */
 .activeSlot .hardcover::before,
-.bookSlot:focus-visible .hardcover::before {
+.bookSlot:focus-visible .hardcover::before,
+.demoSlot:focus-visible .hardcover::before {
   top: -1px;
   right: -1px;
   left: -1px;
@@ -348,54 +411,126 @@
   bottom: 0;
 }
 
-.tooltip {
-  position: absolute;
-  z-index: 40;
-  bottom: calc(100% + 12px);
-  left: 50%;
-  display: grid;
-  width: 232px;
-  gap: 4px;
-  padding: 12px 13px;
-  border: 1px solid rgba(31,28,24,.14);
-  background: color-mix(in srgb, var(--paper) 97%, white);
-  box-shadow: 0 12px 28px rgba(31,28,24,.12);
-  color: var(--ink);
-  opacity: 0;
+.inspectionLayer {
+  position: fixed;
+  z-index: 120;
+  inset: 0;
   pointer-events: none;
-  transform: translate(-50%, 5px);
-  transition: opacity 120ms ease, transform 120ms ease;
 }
 
-.bookSlot:hover .tooltip,
-.bookSlot:focus-visible .tooltip,
-.demoSlot:hover .tooltip {
-  opacity: 1;
-  transform: translate(-50%, 0);
+.selectedInspection {
+  position: absolute;
+  left: var(--inspection-x);
+  bottom: var(--inspection-bottom);
+  display: grid;
+  justify-items: center;
+  gap: 9px;
+  pointer-events: auto;
+  transform: translateX(-50%);
 }
 
-.tooltip strong {
+.inspectionCover,
+.inspectionFallback {
+  height: min(var(--inspection-height), 58vh, 360px);
+  border: 1px solid rgba(37, 31, 25, .16);
+  border-radius: 3px 6px 6px 3px;
+  box-shadow:
+    0 16px 30px rgba(31, 28, 24, .17),
+    0 3px 8px rgba(31, 28, 24, .11);
+  transform-origin: 50% 50%;
+  animation: inspectionFaceIn 300ms cubic-bezier(.22,.72,.2,1) both;
+}
+
+.inspectionCover {
+  display: block;
+  width: auto;
+  object-fit: contain;
+  background: var(--paper);
+}
+
+.inspectionFallback {
+  display: grid;
+  aspect-ratio: 2 / 3;
+  box-sizing: border-box;
+  align-content: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 22px 16px;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.11), transparent 25%, rgba(0,0,0,.08)),
+    var(--inspection-color);
+  color: var(--inspection-ink);
+  text-align: center;
+}
+
+.inspectionFallback strong {
+  max-width: 14ch;
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 400;
-  line-height: 1.12;
+  line-height: 1.08;
 }
 
-.tooltip span,
-.tooltip small {
+.inspectionFallback span,
+.inspectionFallback small {
   font-family: Arial, Helvetica, sans-serif;
-  color: var(--ink-soft);
 }
 
-.tooltip span {
-  font-size: 11px;
+.inspectionFallback span {
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
 }
 
-.tooltip small {
-  margin-top: 2px;
+.inspectionFallback small {
+  opacity: .72;
   font-size: 8px;
   letter-spacing: .1em;
   text-transform: uppercase;
+}
+
+.inspectionActions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  opacity: 0;
+  animation: inspectionActionsIn 180ms ease 220ms forwards;
+}
+
+.inspectionActions a,
+.inspectionActions button {
+  min-height: 30px;
+  padding: 6px 11px;
+  border: 1px solid rgba(31, 28, 24, .18);
+  background: color-mix(in srgb, var(--paper) 96%, white);
+  color: var(--ink);
+  cursor: pointer;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10px;
+  text-decoration: none;
+}
+
+.inspectionActions button {
+  color: var(--ink-soft);
+}
+
+@keyframes inspectionFaceIn {
+  from {
+    opacity: .72;
+    transform: translateY(1px) scaleX(.22);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(-3px) scaleX(1);
+  }
+}
+
+@keyframes inspectionActionsIn {
+  to {
+    opacity: 1;
+  }
 }
 
 .shelfBoard {
@@ -419,5 +554,30 @@
     justify-content: flex-start;
     padding-top: 64px;
     padding-inline: 28px;
+  }
+
+  .coverPeek {
+    width: clamp(26px, calc(var(--book-width) * 1.15), 40px);
+  }
+
+  .inspectionCover,
+  .inspectionFallback {
+    height: min(var(--inspection-height), 52vh, 310px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spine,
+  .coverPeek,
+  .topPageEdge,
+  .inspectionCover,
+  .inspectionFallback,
+  .inspectionActions {
+    transition: none;
+    animation: none;
+  }
+
+  .inspectionActions {
+    opacity: 1;
   }
 }
