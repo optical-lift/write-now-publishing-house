@@ -20,7 +20,6 @@ type WorkingPose = {
 const SHELF_GAP = 4;
 const RIGID_HOVER_ANGLE = 72;
 const MAX_CONTACT_LEAN = 7;
-const SOLVER_PASSES = 3;
 
 function degreesToRadians(value: number) {
   return value * Math.PI / 180;
@@ -69,13 +68,25 @@ export function computeBookEnvelope(
   };
 }
 
+function computeContactEnvelope(volume: LibraryVolume, rigidHover = false): HorizontalEnvelope {
+  if (rigidHover) {
+    return computeBookEnvelope(volume, 0, true);
+  }
+
+  const halfWidth = volume.width / 2;
+  return {
+    left: -halfWidth,
+    right: halfWidth,
+  };
+}
+
 export function resolveContact(
   volumes: LibraryVolume[],
   naturalCenters: number[],
   poses: WorkingPose[],
   activeIndex: number,
 ) {
-  const activeEnvelope = computeBookEnvelope(volumes[activeIndex], 0, true);
+  const activeEnvelope = computeContactEnvelope(volumes[activeIndex], true);
   const activeCenter = naturalCenters[activeIndex];
 
   poses[activeIndex] = {
@@ -86,7 +97,7 @@ export function resolveContact(
   let rightBoundary = activeCenter + activeEnvelope.right + SHELF_GAP;
 
   for (let index = activeIndex + 1; index < volumes.length; index += 1) {
-    const envelope = computeBookEnvelope(volumes[index], poses[index].lean);
+    const envelope = computeContactEnvelope(volumes[index]);
     const minimumCenter = rightBoundary - envelope.left;
 
     poses[index].center = Math.max(naturalCenters[index], minimumCenter);
@@ -96,7 +107,7 @@ export function resolveContact(
   let leftBoundary = activeCenter + activeEnvelope.left - SHELF_GAP;
 
   for (let index = activeIndex - 1; index >= 0; index -= 1) {
-    const envelope = computeBookEnvelope(volumes[index], poses[index].lean);
+    const envelope = computeContactEnvelope(volumes[index]);
     const maximumCenter = leftBoundary - envelope.right;
 
     poses[index].center = Math.min(naturalCenters[index], maximumCenter);
@@ -166,9 +177,7 @@ export function settleShelf(
     lean: index === activeIndex ? 0 : volume.lean,
   }));
 
-  for (let pass = 0; pass < SOLVER_PASSES; pass += 1) {
-    propagatePressure(volumes, naturalCenters, poses, activeIndex);
-  }
+  propagatePressure(volumes, naturalCenters, poses, activeIndex);
 
   return poses.map((pose, index) => {
     const shift = pose.center - naturalCenters[index];
