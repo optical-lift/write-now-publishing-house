@@ -684,8 +684,8 @@
   right: 0;
   bottom: var(--shelf-floor-offset);
   left: 0;
-  height: 48px;
-  border-top: 1px solid rgba(69,52,36,.08);
+  height: 30px;
+  border-top: 1px solid rgba(69,52,36,.06);
   background:
     linear-gradient(
       180deg,
