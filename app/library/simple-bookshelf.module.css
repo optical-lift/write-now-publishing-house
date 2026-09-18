@@ -72,6 +72,191 @@
   will-change: transform;
 }
 
+.rigidPreview {
+  position: absolute;
+  z-index: 25;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  perspective: 1200px;
+  perspective-origin: 50% 44%;
+  transform:
+    translate3d(var(--pose-shift, 0px), 0, 0)
+    rotateZ(var(--pose-lean, var(--book-lean)));
+  transform-origin: 50% 100%;
+  transition:
+    transform 240ms cubic-bezier(.22,.72,.2,1),
+    opacity 90ms ease;
+  will-change: transform, opacity;
+}
+
+.rigidBook {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: var(--rigid-cover-width);
+  height: var(--book-height);
+  transform: rotateY(84deg);
+  transform-origin: 0 100%;
+  transform-style: preserve-3d;
+  transition: transform 320ms cubic-bezier(.22,.72,.2,1);
+  will-change: transform;
+}
+
+.activeSlot.rigidTrialSlot .rigidPreview,
+.rigidTrialSlot:focus-visible .rigidPreview {
+  opacity: 1;
+}
+
+.activeSlot.rigidTrialSlot .rigidBook,
+.rigidTrialSlot:focus-visible .rigidBook {
+  transform: rotateY(72deg);
+}
+
+.activeSlot.rigidTrialSlot .spine,
+.rigidTrialSlot:focus-visible .spine {
+  opacity: 0;
+}
+
+.rigidTrialSlot .tooltip {
+  display: none;
+}
+
+.rigidFace {
+  position: absolute;
+  box-sizing: border-box;
+  backface-visibility: hidden;
+}
+
+.rigidFront,
+.rigidBack {
+  inset: 0;
+  width: var(--rigid-cover-width);
+  height: var(--book-height);
+  border: 1px solid rgba(37,31,25,.17);
+  border-radius: 2px 4px 4px 2px;
+}
+
+.rigidFront {
+  overflow: hidden;
+  background: var(--rigid-spine-color);
+  box-shadow: 0 8px 18px rgba(31,28,24,.13);
+  transform: translateZ(calc(var(--rigid-depth) / 2));
+}
+
+.rigidFront img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.rigidBack {
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.08), transparent 16%, rgba(0,0,0,.08)),
+    var(--rigid-spine-color);
+  transform: rotateY(180deg) translateZ(calc(var(--rigid-depth) / 2));
+}
+
+.rigidSpine {
+  top: 0;
+  left: calc(var(--rigid-depth) / -2);
+  display: flex;
+  width: var(--rigid-depth);
+  height: var(--book-height);
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 26px 7px 18px;
+  border: 1px solid rgba(37,31,25,.17);
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.14), transparent 28%, rgba(0,0,0,.10)),
+    var(--rigid-spine-color);
+  color: var(--rigid-ink);
+  box-shadow:
+    inset 1px 0 rgba(255,255,255,.08),
+    2px 5px 9px rgba(31,28,24,.10);
+  transform: rotateY(-90deg);
+  transform-origin: 50% 50%;
+}
+
+.rigidSpine::before,
+.rigidSpine::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  left: 0;
+  height: 3px;
+  background: var(--rigid-band-color);
+  opacity: .66;
+}
+
+.rigidSpine::before {
+  top: 14%;
+}
+
+.rigidSpine::after {
+  bottom: 12%;
+}
+
+.rigidSpine > span,
+.rigidSpine > small {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+}
+
+.rigidSpine > span {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(10px, .82vw, 13px);
+  line-height: 1;
+}
+
+.rigidSpine > small {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 7px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  opacity: .72;
+}
+
+.rigidForeEdge {
+  top: 3px;
+  left: calc(var(--rigid-cover-width) - (var(--rigid-depth) / 2));
+  width: var(--rigid-depth);
+  height: calc(var(--book-height) - 6px);
+  border-top: 1px solid rgba(255,255,255,.58);
+  border-bottom: 1px solid rgba(194,180,151,.48);
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255,255,255,.28) 0 1px,
+      rgba(213,201,177,.50) 1px 2px,
+      rgba(244,238,224,.76) 2px 4px
+    ),
+    #eee5d4;
+  transform: rotateY(90deg);
+  transform-origin: 50% 50%;
+}
+
+.rigidTopEdge {
+  top: calc(var(--rigid-depth) / -2);
+  left: 3px;
+  width: calc(var(--rigid-cover-width) - 6px);
+  height: var(--rigid-depth);
+  border: 1px solid rgba(194,180,151,.38);
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255,255,255,.26) 0 1px,
+      rgba(213,201,177,.48) 1px 2px,
+      rgba(244,238,224,.76) 2px 4px
+    ),
+    #eee5d4;
+  transform: rotateX(90deg);
+  transform-origin: 50% 50%;
+}
+
 .shelfActive .bookSlot:not(.activeSlot) .spine,
 .shelfActive .demoSlot:not(.activeSlot) .spine {
   filter: blur(.25px) brightness(.97) saturate(.91) contrast(.95);
@@ -419,5 +604,12 @@
     justify-content: flex-start;
     padding-top: 64px;
     padding-inline: 28px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rigidPreview,
+  .rigidBook {
+    transition: none;
   }
 }
