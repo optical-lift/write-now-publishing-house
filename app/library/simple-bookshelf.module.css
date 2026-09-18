@@ -57,36 +57,29 @@
   cursor: default;
 }
 
-/* Every volume carries a small contact shadow even at rest. The shadow is
-   deliberately tight to the foot of the book so the eye reads weight, not
-   elevation. The shelf lip masks its lowest edge. */
+/* A tight contact mark is enough to give the books weight. Keep it close to
+   the shelf surface so it never reads as a floating drop-shadow cloud. */
 .bookSlot::before,
 .demoSlot::before {
   content: '';
   position: absolute;
   z-index: 0;
   left: var(--contact-x, 50%);
-  bottom: -1px;
+  bottom: 0;
   width: var(--shadow-contact-width, 18px);
-  height: 8px;
+  height: 5px;
   border-radius: 50%;
   background: radial-gradient(
     ellipse at center,
-    rgba(31, 28, 24, .24) 0%,
-    rgba(31, 28, 24, .14) 42%,
-    rgba(31, 28, 24, .045) 68%,
-    transparent 82%
+    rgba(31, 28, 24, .28) 0%,
+    rgba(31, 28, 24, .12) 48%,
+    transparent 76%
   );
-  filter: blur(.7px);
-  opacity: .56;
+  filter: blur(.35px);
+  opacity: .48;
   pointer-events: none;
   transform: translateX(-50%) translateX(var(--pose-shift, 0px));
   transition: opacity 160ms ease;
-}
-
-.floorStage .bookSlot::before,
-.floorStage .demoSlot::before {
-  opacity: .68;
 }
 
 .activeSlot.rigidVolumeSlot::before,
@@ -747,17 +740,17 @@
 }
 
 .floorStage .shelfTopPlane {
-  height: 42px;
+  height: 24px;
   background:
     linear-gradient(
       180deg,
-      rgba(140, 122, 102, 0) 0%,
-      rgba(140, 122, 102, .018) 32%,
-      rgba(140, 122, 102, .058) 63%,
-      rgba(140, 122, 102, .115) 82%,
-      rgba(140, 122, 102, .18) 100%
+      #ad9a83 0%,
+      #9b8772 72%,
+      #907b67 100%
     );
-  box-shadow: inset 0 -1px 0 rgba(74, 62, 50, .08);
+  box-shadow:
+    inset 0 1px rgba(255,255,255,.16),
+    inset 0 -1px rgba(74,62,50,.14);
 }
 
 .floorStage .shelfBoard {
@@ -766,8 +759,8 @@
   background:
     linear-gradient(
       180deg,
-      #95816d 0 2px,
-      #786959 2px 100%
+      #8c7864 0 2px,
+      #6f6052 2px 100%
     );
   box-shadow: inset 0 1px rgba(255,255,255,.08);
 }
