@@ -250,6 +250,7 @@ export default function SpatialLibrary({
             />
           ))}
         </div>
+        <div className={shelfStyles.shelfTopPlane} aria-hidden="true" />
         <div className={shelfStyles.shelfBoard} aria-hidden="true" />
       </div>
 
