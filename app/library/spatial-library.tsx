@@ -1,13 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { WnphPublicLibrary } from '../../lib/wnph-public';
 import {
@@ -24,13 +18,12 @@ type SpatialLibraryProps = {
   presentation?: 'default' | 'dissolved';
 };
 
-type ShelfSourceRect = {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-  bottom: number;
-};
+function bindingLabel(volume: LibraryVolume) {
+  if (volume.binding === 'hardcover' && volume.jacket) return 'jacketed hardcover';
+  if (volume.binding === 'hardcover') return 'cloth hardcover';
+  if (volume.binding === 'paperback') return 'paperback';
+  return 'book';
+}
 
 function spineClass(volume: LibraryVolume) {
   return [
@@ -75,29 +68,12 @@ function SpineVisual({ volume }: { volume: LibraryVolume }) {
   );
 }
 
-function CoverPeek({ volume }: { volume: LibraryVolume }) {
-  const artUrl = volume.coverArtUrl ?? volume.representativeImageUrl;
-
-  if (!artUrl && !volume.demo) return null;
-
-  const style = {
-    '--peek-color': volume.spineColor,
-    '--peek-ink': volume.inkColor,
-  } as CSSProperties;
-
-  const className = [
-    shelfStyles.coverPeek,
-    volume.binding === 'hardcover' ? shelfStyles.hardcoverPeek : '',
-    volume.binding === 'paperback' ? shelfStyles.paperbackPeek : '',
-  ].filter(Boolean).join(' ');
-
+function Tooltip({ volume }: { volume: LibraryVolume }) {
   return (
-    <span className={className} style={style} aria-hidden="true">
-      {artUrl ? (
-        <img src={artUrl} alt="" draggable={false} />
-      ) : (
-        <span className={shelfStyles.coverPeekFixture} />
-      )}
+    <span className={shelfStyles.tooltip} aria-hidden="true">
+      <strong>{volume.title}</strong>
+      <span>{volume.creator}</span>
+      <small>{volume.demo ? `Shelf study · ${bindingLabel(volume)}` : volume.workType}</small>
     </span>
   );
 }
@@ -115,7 +91,7 @@ function shelfPose(index: number, activeIndex: number | null, restLean: number) 
   const direction = delta < 0 ? -1 : 1;
   const distance = Math.abs(delta);
   const leanMagnitude = Math.max(1.15, 5.25 * Math.exp(-0.42 * (distance - 1)));
-  const shiftMagnitude = 30 * Math.exp(-0.72 * (distance - 1));
+  const shiftMagnitude = Math.min(11, 3.5 + (distance - 1) * 2.6);
 
   return {
     lean: direction * leanMagnitude,
@@ -128,65 +104,39 @@ function ShelfVolume({
   volume,
   index,
   activeIndex,
-  selectedIndex,
   onActivate,
-  onSelect,
-  onRegister,
 }: {
   volume: LibraryVolume;
   index: number;
   activeIndex: number | null;
-  selectedIndex: number | null;
   onActivate: (index: number | null) => void;
-  onSelect: (index: number, element: HTMLElement) => void;
-  onRegister: (index: number, element: HTMLElement | null) => void;
 }) {
   const pose = shelfPose(index, activeIndex, volume.lean);
   const active = activeIndex === index;
-  const selected = selectedIndex === index;
   const slotStyle = {
     '--book-width': `${volume.width}px`,
     '--book-height': `${volume.height}px`,
     '--pose-lean': `${pose.lean.toFixed(2)}deg`,
     '--pose-shift': `${pose.shift.toFixed(2)}px`,
-    '--cover-reveal': `${Math.max(38, Math.min(46, Math.round(volume.height * 0.14)))}px`,
     zIndex: pose.depth,
   } as CSSProperties;
 
   const slotClassName = [
     volume.demo ? shelfStyles.demoSlot : shelfStyles.bookSlot,
     active ? shelfStyles.activeSlot : '',
-    selected ? shelfStyles.selectedSlot : '',
   ].filter(Boolean).join(' ');
-
-  const handleMouseEnter = () => {
-    if (selectedIndex === null) onActivate(index);
-  };
 
   if (volume.demo) {
     return (
-      <button
-        type="button"
+      <div
         className={slotClassName}
         style={slotStyle}
-        aria-label={`Inspect ${volume.title} by ${volume.creator}, temporary shelf study`}
-        aria-hidden={selected || undefined}
-        tabIndex={selected ? -1 : 0}
-        ref={(element) => onRegister(index, element)}
-        onMouseEnter={handleMouseEnter}
-        onFocus={() => {
-          if (selectedIndex === null) onActivate(index);
-        }}
-        onBlur={() => {
-          if (selectedIndex === null) onActivate(null);
-        }}
-        onClick={(event) => onSelect(index, event.currentTarget)}
+        aria-label={`${volume.title} by ${volume.creator}, temporary shelf study`}
+        onMouseEnter={() => onActivate(index)}
       >
-        <span className={shelfStyles.bookVisual} aria-hidden="true">
-          <CoverPeek volume={volume} />
-          <SpineVisual volume={volume} />
-        </span>
-      </button>
+        <Tooltip volume={volume} />
+        <SpineVisual volume={volume} />
+      </div>
     );
   }
 
@@ -195,81 +145,14 @@ function ShelfVolume({
       className={slotClassName}
       style={slotStyle}
       href={`/books/${volume.publicSlug}`}
-      aria-label={`Inspect ${volume.title} by ${volume.creator}`}
-      aria-hidden={selected || undefined}
-      tabIndex={selected ? -1 : undefined}
-      ref={(element) => onRegister(index, element)}
-      onMouseEnter={handleMouseEnter}
-      onFocus={() => {
-        if (selectedIndex === null) onActivate(index);
-      }}
-      onBlur={() => {
-        if (selectedIndex === null) onActivate(null);
-      }}
-      onClick={(event) => {
-        event.preventDefault();
-        onSelect(index, event.currentTarget);
-      }}
+      aria-label={`Open ${volume.title} by ${volume.creator}`}
+      onMouseEnter={() => onActivate(index)}
+      onFocus={() => onActivate(index)}
+      onBlur={() => onActivate(null)}
     >
-      <span className={shelfStyles.bookVisual} aria-hidden="true">
-        <CoverPeek volume={volume} />
-        <SpineVisual volume={volume} />
-      </span>
+      <Tooltip volume={volume} />
+      <SpineVisual volume={volume} />
     </Link>
-  );
-}
-
-function SelectedBookInspection({
-  volume,
-  sourceRect,
-  onReturn,
-}: {
-  volume: LibraryVolume;
-  sourceRect: ShelfSourceRect;
-  onReturn: () => void;
-}) {
-  const artUrl = volume.coverArtUrl ?? volume.representativeImageUrl;
-  const sourceCenter = sourceRect.left + sourceRect.width / 2;
-  const bottom = Math.max(18, window.innerHeight - sourceRect.bottom);
-  const inspectionHeight = Math.min(sourceRect.height * 1.035, window.innerHeight - 72);
-  const style = {
-    '--inspection-x': `${sourceCenter.toFixed(2)}px`,
-    '--inspection-bottom': `${bottom.toFixed(2)}px`,
-    '--inspection-height': `${inspectionHeight.toFixed(2)}px`,
-    '--inspection-color': volume.spineColor,
-    '--inspection-ink': volume.inkColor,
-  } as CSSProperties;
-
-  return (
-    <div
-      className={shelfStyles.inspectionLayer}
-      role="dialog"
-      aria-label={`Inspect ${volume.title} by ${volume.creator}`}
-    >
-      <div className={shelfStyles.selectedInspection} style={style}>
-        {artUrl ? (
-          <img
-            className={shelfStyles.inspectionCover}
-            src={artUrl}
-            alt={`${volume.title} cover`}
-            draggable={false}
-          />
-        ) : (
-          <div className={shelfStyles.inspectionFallback}>
-            <strong>{volume.title}</strong>
-            <span>{volume.creator}</span>
-            <small>{volume.demo ? 'Shelf study' : 'Cover unavailable'}</small>
-          </div>
-        )}
-
-        <div className={shelfStyles.inspectionActions}>
-          {!volume.demo ? (
-            <Link href={`/books/${volume.publicSlug}`}>Read</Link>
-          ) : null}
-          <button type="button" onClick={onReturn}>Return</button>
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -278,10 +161,7 @@ export default function SpatialLibrary({
   showDirectory = true,
   presentation = 'default',
 }: SpatialLibraryProps) {
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [selectedSourceRect, setSelectedSourceRect] = useState<ShelfSourceRect | null>(null);
-  const slotRefs = useRef(new Map<number, HTMLElement>());
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const dissolved = presentation === 'dissolved';
   const volumes = useMemo(
     () => [
@@ -290,86 +170,6 @@ export default function SpatialLibrary({
     ],
     [dissolved, library.books],
   );
-
-  const registerSlot = useCallback((index: number, element: HTMLElement | null) => {
-    if (element) {
-      slotRefs.current.set(index, element);
-    } else {
-      slotRefs.current.delete(index);
-    }
-  }, []);
-
-  const readSourceRect = useCallback((index: number, element?: HTMLElement) => {
-    const source = element ?? slotRefs.current.get(index);
-    if (!source) return null;
-
-    const rect = source.getBoundingClientRect();
-    return {
-      left: rect.left,
-      top: rect.top,
-      width: rect.width,
-      height: rect.height,
-      bottom: rect.bottom,
-    };
-  }, []);
-
-  const handleSelect = useCallback((index: number, element: HTMLElement) => {
-    const rect = readSourceRect(index, element);
-    if (!rect) return;
-
-    setSelectedSourceRect(rect);
-    setSelectedIndex(index);
-    setHoveredIndex(null);
-  }, [readSourceRect]);
-
-  const handleReturn = useCallback(() => {
-    const returningIndex = selectedIndex;
-    setSelectedIndex(null);
-    setSelectedSourceRect(null);
-
-    if (returningIndex !== null) {
-      requestAnimationFrame(() => {
-        slotRefs.current.get(returningIndex)?.focus();
-      });
-    }
-  }, [selectedIndex]);
-
-  useEffect(() => {
-    if (selectedIndex === null) return undefined;
-
-    const refresh = () => {
-      const rect = readSourceRect(selectedIndex);
-      if (rect) setSelectedSourceRect(rect);
-    };
-
-    refresh();
-    window.addEventListener('resize', refresh);
-    window.addEventListener('scroll', refresh, true);
-
-    return () => {
-      window.removeEventListener('resize', refresh);
-      window.removeEventListener('scroll', refresh, true);
-    };
-  }, [readSourceRect, selectedIndex]);
-
-  useEffect(() => {
-    if (selectedIndex === null) return undefined;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') handleReturn();
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleReturn, selectedIndex]);
-
-  const activeIndex = selectedIndex === null ? hoveredIndex : null;
-  const selectedVolume = selectedIndex === null ? null : volumes[selectedIndex] ?? null;
-  const interactionState = selectedIndex !== null
-    ? 'selected'
-    : hoveredIndex !== null
-      ? 'hoverPreview'
-      : 'rest';
 
   return (
     <div className={styles.libraryScene}>
@@ -394,10 +194,7 @@ export default function SpatialLibrary({
             shelfStyles.rail,
             activeIndex !== null ? shelfStyles.shelfActive : '',
           ].filter(Boolean).join(' ')}
-          data-interaction-state={interactionState}
-          onMouseLeave={() => {
-            if (selectedIndex === null) setHoveredIndex(null);
-          }}
+          onMouseLeave={() => setActiveIndex(null)}
         >
           {volumes.map((volume, index) => (
             <ShelfVolume
@@ -405,23 +202,12 @@ export default function SpatialLibrary({
               volume={volume}
               index={index}
               activeIndex={activeIndex}
-              selectedIndex={selectedIndex}
-              onActivate={setHoveredIndex}
-              onSelect={handleSelect}
-              onRegister={registerSlot}
+              onActivate={setActiveIndex}
             />
           ))}
         </div>
         <div className={shelfStyles.shelfBoard} aria-hidden="true" />
       </div>
-
-      {selectedVolume && selectedSourceRect ? (
-        <SelectedBookInspection
-          volume={selectedVolume}
-          sourceRect={selectedSourceRect}
-          onReturn={handleReturn}
-        />
-      ) : null}
 
       {showDirectory && library.shelves.length > 0 ? (
         <nav className={styles.shelfDirectory} aria-label="Browse library shelves">
