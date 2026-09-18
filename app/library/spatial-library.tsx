@@ -231,6 +231,7 @@ function ShelfVolume({
         onMouseEnter={() => onActivate(index)}
       >
         <Tooltip volume={volume} />
+        {rigidEnabled ? <RigidHoverBook volume={volume} /> : null}
         <SpineVisual volume={volume} />
       </div>
     );
