@@ -231,7 +231,7 @@ export default function SpatialLibrary({
           dissolved ? shelfStyles.floorStage : '',
         ].filter(Boolean).join(' ')}
         style={{
-          '--shelf-floor-offset': `${SHELF_FLOOR_OFFSET}px`,
+          '--shelf-floor-offset': `${dissolved ? 6 : SHELF_FLOOR_OFFSET}px`,
           ...(dissolved ? { width: '100vw', marginLeft: 'calc(50% - 50vw)' } : {}),
         } as CSSProperties}
       >
