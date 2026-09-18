@@ -8,6 +8,14 @@
   background: var(--paper);
 }
 
+.floorStage {
+  --shelf-shadow-depth: 6px;
+  min-height: calc(100vh - 58px);
+  min-height: calc(100dvh - 58px);
+  height: calc(100vh - 58px);
+  height: calc(100dvh - 58px);
+}
+
 .rail {
   position: absolute;
   z-index: 1;
@@ -698,6 +706,28 @@
   height: 3px;
   background: #8c7a66;
   box-shadow: 0 1px 0 rgba(31,28,24,.16);
+}
+
+.floorStage .shelfTopPlane {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(140, 122, 102, 0) 0%,
+      rgba(140, 122, 102, .035) 52%,
+      rgba(140, 122, 102, .11) 100%
+    );
+}
+
+.floorStage .shelfBoard {
+  bottom: 0;
+  height: 6px;
+  background:
+    linear-gradient(
+      180deg,
+      #95816d 0 2px,
+      #786959 2px 100%
+    );
+  box-shadow: inset 0 1px rgba(255,255,255,.08);
 }
 
 @media (max-width: 720px) {
