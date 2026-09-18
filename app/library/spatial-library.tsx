@@ -68,6 +68,36 @@ function SpineVisual({ volume }: { volume: LibraryVolume }) {
   );
 }
 
+function RigidHoverBook({ volume }: { volume: LibraryVolume }) {
+  const artUrl = volume.coverArtUrl ?? volume.representativeImageUrl;
+  if (!artUrl) return null;
+
+  const style = {
+    '--rigid-cover-width': `${Math.round(volume.height * 0.625)}px`,
+    '--rigid-depth': `${volume.width}px`,
+    '--rigid-spine-color': volume.spineColor,
+    '--rigid-band-color': volume.bandColor,
+    '--rigid-ink': volume.inkColor,
+  } as CSSProperties;
+
+  return (
+    <span className={shelfStyles.rigidPreview} style={style} aria-hidden="true">
+      <span className={shelfStyles.rigidBook}>
+        <span className={`${shelfStyles.rigidFace} ${shelfStyles.rigidFront}`}>
+          <img src={artUrl} alt="" draggable={false} />
+        </span>
+        <span className={`${shelfStyles.rigidFace} ${shelfStyles.rigidBack}`} />
+        <span className={`${shelfStyles.rigidFace} ${shelfStyles.rigidSpine}`}>
+          <span>{volume.title}</span>
+          <small>{volume.creator}</small>
+        </span>
+        <span className={`${shelfStyles.rigidFace} ${shelfStyles.rigidForeEdge}`} />
+        <span className={`${shelfStyles.rigidFace} ${shelfStyles.rigidTopEdge}`} />
+      </span>
+    </span>
+  );
+}
+
 function Tooltip({ volume }: { volume: LibraryVolume }) {
   return (
     <span className={shelfStyles.tooltip} aria-hidden="true">
@@ -113,6 +143,7 @@ function ShelfVolume({
 }) {
   const pose = shelfPose(index, activeIndex, volume.lean);
   const active = activeIndex === index;
+  const rigidTrial = volume.workKey === 'wish-fairy-and-dewy-dear';
   const slotStyle = {
     '--book-width': `${volume.width}px`,
     '--book-height': `${volume.height}px`,
@@ -124,6 +155,7 @@ function ShelfVolume({
   const slotClassName = [
     volume.demo ? shelfStyles.demoSlot : shelfStyles.bookSlot,
     active ? shelfStyles.activeSlot : '',
+    rigidTrial ? shelfStyles.rigidTrialSlot : '',
   ].filter(Boolean).join(' ');
 
   if (volume.demo) {
@@ -151,6 +183,7 @@ function ShelfVolume({
       onBlur={() => onActivate(null)}
     >
       <Tooltip volume={volume} />
+      {rigidTrial ? <RigidHoverBook volume={volume} /> : null}
       <SpineVisual volume={volume} />
     </Link>
   );
