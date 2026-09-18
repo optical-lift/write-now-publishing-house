@@ -57,8 +57,46 @@
   cursor: default;
 }
 
+/* Every volume carries a small contact shadow even at rest. The shadow is
+   deliberately tight to the foot of the book so the eye reads weight, not
+   elevation. The shelf lip masks its lowest edge. */
+.bookSlot::before,
+.demoSlot::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  left: var(--contact-x, 50%);
+  bottom: -1px;
+  width: var(--shadow-contact-width, 18px);
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(31, 28, 24, .24) 0%,
+    rgba(31, 28, 24, .14) 42%,
+    rgba(31, 28, 24, .045) 68%,
+    transparent 82%
+  );
+  filter: blur(.7px);
+  opacity: .56;
+  pointer-events: none;
+  transform: translateX(-50%) translateX(var(--pose-shift, 0px));
+  transition: opacity 160ms ease;
+}
+
+.floorStage .bookSlot::before,
+.floorStage .demoSlot::before {
+  opacity: .68;
+}
+
+.activeSlot.rigidVolumeSlot::before,
+.rigidVolumeSlot:focus-visible::before {
+  opacity: .22;
+}
+
 .spine {
   position: absolute;
+  z-index: 1;
   inset: 0;
   overflow: hidden;
   border: 1px solid rgba(37, 31, 25, .16);
@@ -69,7 +107,7 @@
   box-shadow:
     inset 2px 0 0 rgba(255,255,255,.08),
     inset -2px 0 0 rgba(0,0,0,.08),
-    2px 5px 9px rgba(31, 28, 24, .12);
+    1px 3px 5px rgba(31, 28, 24, .10);
   color: var(--book-ink);
   transform:
     translate3d(var(--pose-shift, 0px), 0, 0)
@@ -709,13 +747,17 @@
 }
 
 .floorStage .shelfTopPlane {
+  height: 42px;
   background:
     linear-gradient(
       180deg,
       rgba(140, 122, 102, 0) 0%,
-      rgba(140, 122, 102, .035) 52%,
-      rgba(140, 122, 102, .11) 100%
+      rgba(140, 122, 102, .018) 32%,
+      rgba(140, 122, 102, .058) 63%,
+      rgba(140, 122, 102, .115) 82%,
+      rgba(140, 122, 102, .18) 100%
     );
+  box-shadow: inset 0 -1px 0 rgba(74, 62, 50, .08);
 }
 
 .floorStage .shelfBoard {
