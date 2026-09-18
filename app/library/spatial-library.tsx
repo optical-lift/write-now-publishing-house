@@ -13,6 +13,7 @@ import styles from './spatial-library.module.css';
 import shelfStyles from './simple-bookshelf.module.css';
 import {
   SHELF_FLOOR_OFFSET,
+  computeBookEnvelope,
   settleShelf,
   type ShelfPhysicsPose,
 } from './shelf-physics';
@@ -134,12 +135,15 @@ function ShelfVolume({
 }) {
   const active = activeIndex === index;
   const rigidEnabled = Boolean(volume.coverArtUrl || volume.demo);
+  const rigidEnvelope = rigidEnabled ? computeBookEnvelope(volume, 0, true) : null;
   const slotStyle = {
     '--book-width': `${volume.width}px`,
     '--book-height': `${volume.height}px`,
     '--pose-lean': `${pose.lean.toFixed(2)}deg`,
     '--pose-shift': `${pose.shift.toFixed(2)}px`,
     '--contact-x': `${pose.contactX * 100}%`,
+    '--shadow-lift-width': `${rigidEnvelope ? Math.max(42, Math.round(rigidEnvelope.right + 14)) : 42}px`,
+    '--shadow-contact-width': `${Math.max(14, Math.min(26, Math.round(volume.width * 0.72)))}px`,
     zIndex: pose.depth,
   } as CSSProperties;
 
@@ -158,6 +162,7 @@ function ShelfVolume({
         onMouseEnter={() => onActivate(index)}
       >
         <Tooltip volume={volume} />
+        {rigidEnabled ? <span className={shelfStyles.rigidGroundShadow} aria-hidden="true" /> : null}
         {rigidEnabled ? <RigidHoverBook volume={volume} /> : null}
         <SpineVisual volume={volume} />
       </div>
