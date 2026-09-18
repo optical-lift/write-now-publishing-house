@@ -10,6 +10,7 @@
 
 .rail {
   position: absolute;
+  z-index: 1;
   inset: 0 0 calc(var(--shelf-floor-offset) - var(--shelf-shadow-depth));
   display: flex;
   align-items: flex-end;
@@ -675,6 +676,24 @@
   font-size: 8px;
   letter-spacing: .1em;
   text-transform: uppercase;
+}
+
+.shelfTopPlane {
+  position: absolute;
+  z-index: 0;
+  right: 0;
+  bottom: var(--shelf-floor-offset);
+  left: 0;
+  height: 48px;
+  border-top: 1px solid rgba(69,52,36,.08);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--paper) 92%, #a17d58) 0%,
+      color-mix(in srgb, var(--paper) 78%, #a17d58) 58%,
+      color-mix(in srgb, var(--paper) 54%, #8d6847) 100%
+    );
+  pointer-events: none;
 }
 
 .shelfBoard {
